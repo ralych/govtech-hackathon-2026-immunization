@@ -1,0 +1,31 @@
+server:
+  port: 9111
+  servlet.context-path: /ch-vacd-api-reference-server
+
+spring:
+  application.name: ch-vacd-API-reference-server
+
+# H2 in-memory datasource (for development)
+  datasource:
+    url: jdbc:h2:mem:vacd;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driverClassName: org.h2.Driver
+
+# JPA
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    hibernate.ddl-auto: update
+
+# HAPI FHIR server servlet mapping
+hapi:
+  fhir:
+    server.path: /fhir/*
+    pretty_print: true
+    default_response_encoding: json
+    openapi_enabled: true
+
+# define which resource providers to load (comma-separated list). empty list means "load all"
+fhir:
+  providers: BundleProvider, ImmunizationProvider, OrganizationProvider, PatientProvider, PractitionerProvider, PractitionerRoleProvider, RelatedPersonProvider
