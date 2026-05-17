@@ -1,0 +1,72 @@
+package ch.vacd.pbll
+
+import ch.vacd.pbll.ingestion.BundleExtractor
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonPrimitive
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
+import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+
+class BundleExtractorTest {
+
+    private fun loadExample(name: String): String {
+        // examples/ is at the repo root; tests run from services/pbll/
+        val candidates = listOf(
+            Path.of("../../examples/$name"),
+            Path.of("examples/$name"),
+        )
+        val path = candidates.firstOrNull { Files.exists(it) }
+            ?: fail("example not found in any candidate path: $candidates")
+        return Files.readString(path)
+    }
+
+    @Test fun `peels the official CH VACD document Bundle`() {
+        val input = Json.parseToJsonElement(loadExample("01-immunization-administration-boostrix.json"))
+        val out = BundleExtractor.peel(input)
+        assertEquals("Composition",
+            (out.composition["resourceType"] as JsonPrimitive).content)
+        assertEquals("Immunization",
+            (out.immunization["resourceType"] as JsonPrimitive).content)
+        assertNotNull(out.patient)
+        assertEquals(1, out.practitioners.size)
+        assertEquals(1, out.organizations.size)
+        assertEquals(1, out.practitionerRoles.size)
+    }
+
+    @Test fun `rejects a bare Immunization`() {
+        val input = Json.parseToJsonElement("""{"resourceType":"Immunization","status":"completed"}""")
+        val ex = assertFails { BundleExtractor.peel(input) }
+        assertTrue((ex.message ?: "").contains("Bundle"), "expected error to mention Bundle: ${ex.message}")
+    }
+
+    @Test fun `rejects a Bundle whose type is not document`() {
+        val input = Json.parseToJsonElement("""{"resourceType":"Bundle","type":"collection","entry":[]}""")
+        val ex = assertFails { BundleExtractor.peel(input) }
+        assertTrue((ex.message ?: "").contains("document"))
+    }
+
+    @Test fun `rejects a document Bundle whose first entry is not Composition`() {
+        val input = Json.parseToJsonElement("""{
+            "resourceType":"Bundle","type":"document",
+            "entry":[{"resource":{"resourceType":"Immunization","status":"completed"}}]
+        }""")
+        val ex = assertFails { BundleExtractor.peel(input) }
+        assertTrue((ex.message ?: "").contains("Composition"), "expected error to mention Composition: ${ex.message}")
+    }
+
+    @Test fun `rejects a Composition with no Immunization in any section`() {
+        val input = Json.parseToJsonElement("""{
+            "resourceType":"Bundle","type":"document",
+            "entry":[
+                {"resource":{"resourceType":"Composition","section":[]}}
+            ]
+        }""")
+        val ex = assertFails { BundleExtractor.peel(input) }
+        assertTrue((ex.message ?: "").contains("Composition"))
+    }
+}

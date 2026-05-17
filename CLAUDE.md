@@ -5,23 +5,21 @@ Orientation for Claude Code sessions in this repo.
 - **What this repo is:** a dev harness for the Swiss GovTech Hackathon
   2026 VACD challenge. `README.md` has the overview, service table, and
   architecture patterns.
-- **Chronological state and next steps:** `progress/main-progress.txt`
-  (or the current branch's progress file). Update it via the
-  `update-progress` skill.
 
 ## Scope
 
 The harness = `.devcontainer/`, `docker-compose.yml`, `services/` source
-for locally-built containers, and `docs/`. The **glue service** that
-mediates FHIR ⇄ openEHR is what hackathon participants build — it is
-deliberately not part of this repo, and `docker-compose.yml` must not
-contain it.
+for locally-built containers, `examples/` (canonical CH VACD test
+Bundles), and `docs/`. The **platform layer** that mediates between
+the CH VACD FHIR API and the openEHR Clinical Data Repository is what
+hackathon participants build — it is deliberately not pre-decided by the
+harness, and `docker-compose.yml` must not contain it.
 
-## Constraints
+The project currently ships **one example platform**, the **PBLL** — short for **Platform
+Business Logic Layer** — at `services/pbll/`. It is a *reference*
+implementation of Pattern A (a Kotlin/Ktor FHIR facade over openEHR), not
+*the* implementation. Teams are expected to write their own, in whatever
+language and shape they prefer; the PBLL is there to copy, extend, or
+ignore. Do **not** add it to `docker-compose.yml` — participants run it
+themselves with `java -jar` from the dev container.
 
-- **Lean discipline:** dev container image <4 GB, total compose working
-  set ~4 GB. Participants pull this over conference wifi, so push back
-  on anything heavy.
-- **Step-by-step on compose:** don't add services speculatively. Wait
-  until the user provides source or context for a service before wiring
-  it in.

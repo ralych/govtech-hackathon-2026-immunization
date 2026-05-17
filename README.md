@@ -1,124 +1,83 @@
 # GovTech Hackathon 2026 — Digital Immunization Record (VACD)
 
 Dev harness for the Swiss GovTech Hackathon 2026 **VACD** challenge
-(28–29 May 2026, FOITT Zollikofen).
+(28–29 May 2026, FOITT Zollikofen). Clone, open in VS Code with the
+Dev Containers extension, `docker compose up`, and you have the
+backing services the challenge revolves around. **Your team writes the
+platform layer** that mediates between the CH VACD FHIR API and an
+openEHR Clinical Data Repository — that's the challenge, not the harness.
 
-Clone this repo, open it in VS Code with the Dev Containers extension, and
-`docker compose up`. You get a fixed set of backing services that the
-challenge revolves around. **Your team writes the glue service** that
-mediates between the CH VACD FHIR API and an openEHR Clinical Data
-Repository. The glue is *not* part of this harness — that's the challenge.
+## Quick start
 
-## What's in the harness
+1. Open the repo in VS Code and choose **"Reopen in Container"**. The
+   dev container ships Java 25, Maven/Gradle, Node 22, Python 3.13,
+   Kotlin 2.3.21, Docker, `gh`, and the Claude/Gemini/Codex CLIs.
+2. Inside the container terminal:
+   ```sh
+   docker compose up
+   ```
+3. Smoke-test a service:
+   ```sh
+   curl http://fhir-server-1:9111/ch-vacd-api-reference-server/fhir/metadata
+   ```
+   Should return a `CapabilityStatement`. The dev container shares the
+   `vacd-net` bridge with the compose services, so service-name URLs
+   resolve directly on macOS/Windows/Linux.
 
-| Service          | Port  | What it is                                                                                       |
-| ---              | ---   | ---                                                                                              |
-| `fhir-server-1`  | 9111  | CH VACD FHIR API reference server, instance 1 (HAPI FHIR JPA, Spring Boot, Java 21, H2 in-memory) |
-| `fhir-server-2`  | 9112  | Same image, instance 2 (separate JVM and in-memory H2)                                            |
-| `ehrbase`        | 8082  | openEHR Clinical Data Repository (Postgres-backed)                                                |
-| `openfhir`       | 8083  | FHIR ⇄ openEHR mapping engine (Mongo-backed)                                                      |
+## What you get
 
-The two FHIR servers are intentionally generic — *the harness does not
-assign them producer/consumer roles*. How you use them depends on which
-architecture pattern you pick (below).
+| Service          | Port  | Image / build                                       | Notes |
+| ---              | ---   | ---                                                 | --- |
+| `fhir-server-1`  | 9111  | `services/ch-vacd-api-reference-server/` (HAPI 8.8.1, Spring Boot, H2) | CH VACD reference server with the 18 CH VACD `ResourceProvider`s and the `$export-document` Operation. |
+| `fhir-server-2`  | 9112  | same image, second JVM                              | Optional, commented out in `docker-compose.yml`. Enable for producer/consumer split topologies. |
+| `ehrbase`        | 8082  | `ehrbase/ehrbase:2.31.0`                            | openEHR CDR. BASIC auth: `ehrbase-user` / `SuperSecretPassword`. |
+| `ehrbase-db`     | —     | `ehrbase/ehrbase-v2-postgres:16.2`                  | Postgres for EHRbase. Internal-only. |
+| `openfhir`       | 8083  | `openfhir/openfhir:2.2.1` (`linux/amd64`)           | FHIR ⇄ openEHR mapping engine. |
+| `openfhir-mongo` | —     | `mongo:7.0`                                         | openFHIR's config store. Internal-only. |
 
-Source for `fhir-server-{1,2}` is vendored at
-`services/ch-vacd-api-reference-server/` (Roeland's reference implementation,
-no inner `.git`). The other services are pulled from upstream images.
+Connection URLs are exported to the dev container as `FHIR_SERVER_1_URL`,
+`FHIR_SERVER_2_URL`, `CDR_URL`, `MAPPER_URL` (see
+`.devcontainer/devcontainer.json`). The two FHIR servers are
+intentionally generic — the harness does **not** assign them
+producer/consumer roles; that's a Pattern B choice.
 
-## Architecture options (open by design)
+## What you build
 
-The harness deliberately doesn't pick a glue topology — call this
-**Pattern D**, where all backing services run default-on and your team
-decides how to wire them. Three concrete patterns we expect to see:
+The challenge has three pieces, all participant-built:
 
-- **Pattern A — Glue as FHIR server.** Your glue *exposes* the CH VACD
-  FHIR API itself. openFHIR + EHRbase sit behind it as storage. The two
-  reference-server instances are **not in the runtime path** — use them
-  only as a spec implementation to validate your responses against.
+- A **producer** that emits a **CH VACD Immunization Administration Document**.
+- The **platform layer** that lands it in openEHR and serves it back out.
+- A **consumer** that fetches and renders a **CH VACD Vaccination Record Document**.
 
-- **Pattern B — Glue as ETL bridge.** Treat `fhir-server-1` as the
-  upstream (producer side) and `fhir-server-2` as the downstream
-  (consumer side). Your glue reads from server-1, transforms via
-  openFHIR, stores in EHRbase, transforms back, writes to server-2. The
-  glue itself does *not* expose a FHIR API.
+Two architecture patterns are documented in
+[`docs/architecture/patterns.md`](docs/architecture/patterns.md):
+**Pattern A** (the platform is the system of record) and **Pattern B**
+(the platform is an integration layer over external FHIR systems). Pick
+whichever gets you to a working flow fastest.
 
-- **Pattern C — Glue as facade.** Hybrid of A and B. Your glue exposes
-  some API and delegates storage; EHRbase is the canonical form behind
-  it.
+The harness reserves host ports **3000, 3001, 8000, 8001, 8080, 8081**
+for your platform layer — all forwarded by the dev container. Run your
+service inside the container terminal; reach it from your host browser
+like any localhost service.
 
-You don't need to declare a pattern at the start — pick whatever shape
-gets you to a working end-to-end flow fastest, given your team's stack.
+One worked example, **PBLL (Platform Business Logic Layer)**, lives at
+[`services/pbll/`](services/pbll/) — Kotlin + Ktor, Pattern A,
+write-path only. It's there to copy, extend, or ignore. Canonical
+test Bundles live under [`examples/`](examples/).
 
-## Producer and consumer apps
-
-End-to-end the challenge has three pieces, not one:
-
-- A **producer** that emits a **CH VACD Immunization Administration
-  Document** (a clinician documenting an administered dose).
-- The **glue / orchestration** that lands it in openEHR and serves it
-  back out.
-- A **consumer** that fetches and renders a **CH VACD Vaccination
-  Record Document** (a patient or care provider viewing the record).
-
-Both ends are wide open — a clinician web form, a CLI that posts a
-canned bundle, a mobile-style patient view, a printable summary,
-whatever fits the demo you want to give. Be creative; the interesting
-judging surface is as much *what you do with the data* as the mapping
-itself. The harness only provides the FHIR + openEHR backing services;
-the producer, consumer, and the glue between them are all yours.
-
-## Running the harness
-
-Inside the dev container (open the repo in VS Code → "Reopen in Container"):
-
-```sh
-docker compose up
-```
-
-First-time build pulls dependencies (HAPI FHIR + Spring Boot) and takes a
-few minutes. Subsequent builds use Maven's cache mount and are near-instant
-when sources are unchanged.
-
-Verify both FHIR servers respond:
-
-```sh
-curl http://host.docker.internal:9111/ch-vacd-api-reference-server/fhir/metadata
-curl http://host.docker.internal:9112/ch-vacd-api-reference-server/fhir/metadata
-```
-
-Both should return a `CapabilityStatement` (HAPI FHIR 8.8.1, FHIR R4).
-
-`host.docker.internal` is the right hostname from inside the dev container
-(your glue code uses the same; see `FHIR_SERVER_1_URL` / `FHIR_SERVER_2_URL`
-/ `CDR_URL` / `MAPPER_URL` in `.devcontainer/devcontainer.json`).
-
-## Building your glue service
-
-The harness reserves a range of host ports (3000, 3001, 8000, 8001, 8080,
-8081) for your glue. Pick whichever your stack defaults to — they're all
-forwarded by the dev container without any extra config. Run your glue
-inside the dev container terminal; hit it from your browser/Postman on
-your host machine like any localhost service.
-
-## What's in this repo
+## Repo layout
 
 ```
-.devcontainer/   dev container config — Java 25 + Maven/Gradle, Node 22,
-                 Python 3.13, Kotlin 2.3, Docker, gh, Claude/Gemini/Codex
-docker-compose.yml             the backing services
-services/        source for services built from local Dockerfiles
-  ch-vacd-api-reference-server/  HAPI FHIR JPA reference server
+.devcontainer/         dev container config + post-create.sh
+docker-compose.yml     the backing services above
+services/
+  ch-vacd-api-reference-server/   HAPI FHIR + CH VACD ResourceProviders
+  pbll/                           example platform layer (Kotlin/Ktor)
+examples/              canonical CH VACD example Bundles + round-trip script
 docs/
-  challenge/     the original hackathon brief
-  bootstrap/     openEHR + openFHIR setup notes (in progress)
+  architecture/        Pattern A / Pattern B reference
+  challenge/           original hackathon brief + openEHR template
+  demo/                rendered PDF and screenshots of the PBLL example
+progress/              branch-scoped chronological progress notes
 ```
 
-## Lean-discipline notes
-
-Participants pull this over conference wifi. Targets:
-
-- Dev container image **< 4 GB**.
-- Total compose working set **~4 GB** (fits a 16 GB laptop with room).
-
-If you find yourself adding heavy images, check first.

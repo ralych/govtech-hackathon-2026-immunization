@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:./database/vacd;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+#    url: jdbc:postgresql://localhost:5432/chvacdapirefserver
+#    username: vacduser
+#    password: vacduser
+#    driverClassName: org.postgresql.Driver

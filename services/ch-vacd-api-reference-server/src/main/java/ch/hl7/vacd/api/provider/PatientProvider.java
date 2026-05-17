@@ -18,6 +18,7 @@ import ch.hl7.vacd.api.entity.ResourceEntity;
 
 import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
@@ -114,29 +115,23 @@ public class PatientProvider implements IResourceProvider {
 
 	@Operation(name = "export-document", idempotent = false)
 	public Bundle exportDocument(@IdParam IIdType theId, @ResourceParam Parameters parameters) {
-//		if(parameters.getParameter().size() > 0) {
-//			Parameters.ParametersParameterComponent p = parameters.getParameter().get(0);
-//			if(p.getName().equals("includeImmunizations") && p.getValue() instanceof org.hl7.fhir.r4.model.BooleanType b && b.booleanValue()) {
-//				Patient patient = read(new IdType(theId.getValue()));
-//				Bundle bundle = new Bundle();
-//				bundle.setType(Bundle.BundleType.DOCUMENT);
-//				bundle.addEntry().setResource(patient);
-//				// Add immunizations for this patient
-//				java.util.List<ResourceEntity> stored = store.findByResourceType("Immunization");
-//				for (ResourceEntity e : stored) {
-//					org.hl7.fhir.instance.model.api.IBaseResource r = (org.hl7.fhir.instance.model.api.IBaseResource) fhirContext
-//							.newJsonParser().parseResource(e.getJson());
-//					if (r instanceof org.hl7.fhir.r4.model.Immunization imm && imm.getPatient() != null
-//							&& imm.getPatient().getReferenceElement().getIdPart().equals(theId.getIdPart())) {
-//						bundle.addEntry().setResource(imm);
-//					}
-//				}
-//				return bundle;
-//			}
-//		}
-		Bundle bundle = new Bundle();
-		bundle.setType(Bundle.BundleType.DOCUMENT);
-		return bundle;
+		if ((parameters.getParameter("type") != null) && //
+				(parameters.getParameter("type").getValue() instanceof Coding) && //
+				("urn:oid:2.16.756.5.30.1.127.3.10.10".equals(//
+						((Coding) parameters.getParameter("type").getValue()).getSystem()))
+				&& //
+				("urn:che:epr:ch-vacd:vaccination-record:2022".equals(//
+						((Coding) parameters.getParameter("type").getValue()).getCode()))//
+		) {
+
+			// In a real implementation, you would retrieve the patient and related resources based on the provided ID
+			Bundle bundle = new Bundle();
+			bundle.setType(Bundle.BundleType.DOCUMENT);
+			return bundle;
+		} else {
+			throw new IllegalArgumentException("Unsupported type code!");
+		}
+
 	}
 
 	@Override

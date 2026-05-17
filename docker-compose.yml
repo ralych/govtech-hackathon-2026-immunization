@@ -1,9 +1,11 @@
 # Swiss GovTech Hackathon 2026 — VACD harness backing services.
 #
-# Pattern D (open architecture): all backing services run default-on. Teams
-# pick their glue topology (A: glue as FHIR server, B: glue as ETL bridge,
-# C: glue as facade). The harness does not include a glue service — that's
-# what participants build. The dev container forwards port 8080 for it.
+# All backing services run default-on; the harness does not pick a topology.
+# Teams build the platform layer themselves (see docs/architecture/patterns.md
+# for Pattern A / Pattern B references and services/pbll/ for one example
+# implementation). The platform layer is NOT included here — the dev container
+# forwards ports 3000/3001/8000/8001/8080/8081 for participants to run their
+# own service on.
 #
 # One CH VACD FHIR server runs by default on 9111. A second identical
 # instance for 9112 is defined below but commented out — teams that want
@@ -45,7 +47,7 @@ services:
   # lean and removes a moving part participants don't need. Override via
   # SECURITY_AUTHTYPE=OAUTH at compose time if a team wants to bring their
   # own IdP. Internal container port is 8080 (Spring Boot default); host
-  # port is 8082 to leave 8080 free for participants' glue.
+  # port is 8082 to leave 8080 free for participants' platform layer.
   ehrbase:
     image: ehrbase/ehrbase:2.31.0
     container_name: vacd-ehrbase
@@ -134,8 +136,8 @@ services:
 # the dev container also joins (via `--network=vacd-net` in
 # .devcontainer/devcontainer.json runArgs, with `initializeCommand` creating
 # the network on the host if it doesn't exist). This puts the dev container
-# and the compose services on the same wire, so participants' glue addresses
-# backing services by service name (http://ehrbase:8080, http://fhir-server-1:9111,
+# and the compose services on the same wire, so participants' platform layer
+# addresses backing services by service name (http://ehrbase:8080, http://fhir-server-1:9111,
 # etc.) instead of host.docker.internal — identical behaviour on macOS/Windows/Linux,
 # no port-forwarding hairpin through the host. Published ports on each service
 # are still exposed for host-side tools (browsers, Postman).

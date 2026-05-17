@@ -1,31 +1,20 @@
-# syntax=docker/dockerfile:1.7
-#
-# CH VACD API Reference Server — multi-stage build.
-# Built and run twice in docker-compose.yml as fhir-producer / fhir-consumer.
-#
-# Default listen port is 9111 (from src/main/resources/application.yml).
-# Override with SERVER_PORT env at runtime for the consumer instance.
-
-FROM eclipse-temurin:25-jdk AS build
-WORKDIR /workspace
-
-COPY .mvn .mvn
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw
-
-COPY src src
-RUN --mount=type=cache,target=/root/.m2 \
-    ./mvnw -B -e -DskipTests package \
- && mv target/ch-vacd-api-reference-server-*.jar target/app.jar
-
-
-FROM eclipse-temurin:25-jre AS runtime
-WORKDIR /app
-
-RUN useradd --create-home --shell /bin/sh --uid 1001 spring
-USER spring
-
-COPY --from=build --chown=spring:spring /workspace/target/app.jar /app/app.jar
-
+FROM bellsoft/liberica-openjdk-alpine:latest
 EXPOSE 9111
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+
+COPY ./target/ch-vacd-api-reference-server-*.jar /ch-vacd-api-server.jar
+
+ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
+RUN apk --purge del
+
+# Create a new user and switch to it
+#RUN adduser -D server --disabled-password --gecos '' server
+#ENV HOME=/home/server
+#RUN mkdir -p /database && chown server:server /database && chmod 777 /database
+#RUN mkdir -p /config && chown server:server /config
+RUN mkdir -p /database
+RUN mkdir -p /config
+#RUN chown server:server /
+
+#USER server
+
+ENTRYPOINT java -Xmx3072M -Dspring.config.additional-location=optional:file:/config/application.yaml,optional:file:application.yaml -jar /ch-vacd-api-server.jar

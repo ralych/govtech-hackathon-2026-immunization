@@ -1,0 +1,28 @@
+services:
+  vacd-api-server:
+    # build: .
+    image: vacd-api-server:latest
+    container_name: vacd-api-server
+    restart: on-failure
+    ports:
+      - "9111:9111"
+ #   links:
+ #     - licence-db:postgres
+    volumes:
+      - ./config:/config
+      - ./database:/database
+#  licence-db:
+#    image: postgres:latest
+#    container_name: licence-db
+#    restart: always
+#    # Comment out to not log queries
+#    command: ["postgres", "-c", "log_statement=all"]
+#    # End comment out
+#    ports:
+#      - "5433:5432"
+#    environment:
+#      POSTGRES_DB: 'licence_management'
+#      POSTGRES_USER: 'licman'
+#      POSTGRES_PASSWORD: 'licman'     
+#    volumes:
+#      - ./data:/var/lib/postgresql:wq

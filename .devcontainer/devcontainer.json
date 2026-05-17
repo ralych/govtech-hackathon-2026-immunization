@@ -1,0 +1,62 @@
+{
+  "name": "GovTech Hackathon 2026 - VACD Dev Environment",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": true,
+      "configureZshAsDefaultShell": false
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "25",
+      "jdkDistro": "tem",
+      "installMaven": true,
+      "installGradle": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.13",
+      "installTools": true
+    }
+  },
+  "initializeCommand": "docker network create vacd-net 2>/dev/null || true",
+  "runArgs": ["--network=vacd-net"],
+  "containerEnv": {
+    "FHIR_SERVER_1_URL": "http://fhir-server-1:9111/ch-vacd-api-reference-server/fhir",
+    "FHIR_SERVER_2_URL": "http://fhir-server-2:9112/ch-vacd-api-reference-server/fhir",
+    "CDR_URL": "http://ehrbase:8080/ehrbase/rest/openehr/v1",
+    "MAPPER_URL": "http://openfhir:8083"
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-spring-boot-dashboard",
+        "fwcd.kotlin",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "redhat.vscode-yaml",
+        "humao.rest-client",
+        "ms-azuretools.vscode-docker",
+        "anthropic.claude-code"
+      ],
+      "settings": {
+        "remote.localPortHost": "allInterfaces"
+      }
+    }
+  },
+  "forwardPorts": [3000, 3001, 8000, 8001, 8080, 8081, 8082, 8083, 9111, 9112],
+  "portsAttributes": {
+    "8082": { "label": "EHRbase (openEHR CDR)" },
+    "8083": { "label": "openFHIR (Mapping Engine)" },
+    "9111": { "label": "CH VACD FHIR Server 1" },
+    "9112": { "label": "CH VACD FHIR Server 2" }
+  }
+}
