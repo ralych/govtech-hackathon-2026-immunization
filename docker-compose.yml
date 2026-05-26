@@ -2,10 +2,12 @@
 #
 # All backing services run default-on; the harness does not pick a topology.
 # Teams build the platform layer themselves (see docs/architecture/patterns.md
-# for Pattern A / Pattern B references and services/pbll/ for one example
-# implementation). The platform layer is NOT included here — the dev container
-# forwards ports 3000/3001/8000/8001/8080/8081 for participants to run their
-# own service on.
+# for Pattern A / Pattern B references and
+# services/platform-business-logic-example/ for one example implementation).
+# The platform layer is NOT included by default — the dev container forwards
+# ports 3000/3001/8000/8001/8080/8081 for participants to run their own
+# service on. An example platform (Pattern A tracer bullet) is available
+# behind the `example` profile: `docker compose --profile example up --wait`.
 #
 # One CH VACD FHIR server runs by default on 9111. A second identical
 # instance for 9112 is defined below but commented out — teams that want
@@ -17,7 +19,8 @@ name: vacd-hackathon
 
 services:
   # CH VACD FHIR API reference server — instance 1.
-  # Listens on 9111 (default from application.yml). H2 in-memory, no volume.
+  # Multi-stage build: Maven runs inside Docker, no local mvn/java prereqs.
+  # H2 in-memory, no volume.
   fhir-server-1:
     build:
       context: ./services/ch-vacd-api-reference-server
@@ -25,6 +28,12 @@ services:
     container_name: vacd-fhir-server-1
     ports:
       - "9111:9111"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9111/ch-vacd-api-reference-server/fhir/metadata | grep -q CapabilityStatement"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
     volumes:
       - ./Docker/config:/config
       - ./Docker/database:/database
@@ -70,6 +79,12 @@ services:
       SECURITY_AUTHADMINPASSWORD: EvenMoreSecretPassword
     ports:
       - "8082:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --header='Authorization: Basic ZWhyYmFzZS11c2VyOlN1cGVyU2VjcmV0UGFzc3dvcmQ=' http://localhost:8080/ehrbase/rest/status | grep -q ehrbase_version"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
 
   # Pre-configured Postgres for EHRbase. This image (ehrbase/ehrbase-v2-postgres)
   # bakes in the upstream createdb-docker.sql, so on first start it creates
@@ -104,7 +119,7 @@ services:
   # SERVER_PORT moves Tomcat to 8083 so internal=external, matching the
   # fhir-server-1 convention and what participants hit on the host.
   openfhir:
-    image: openfhir/openfhir:2.2.1
+    image: openfhir/openfhir:2.2.3
     platform: linux/amd64
     container_name: vacd-openfhir
     depends_on:
@@ -115,6 +130,47 @@ services:
       SPRING_DATA_MONGODB_URI: "mongodb://admin:admin@openfhir-mongo:27017/openfhir?authSource=admin"
     ports:
       - "8083:8083"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8083/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
+
+  # Example platform layer — Pattern A tracer bullet (Kotlin/Ktor).
+  # Profile-gated: only starts with `docker compose --profile example up`.
+  # Not part of the default harness — participants build their own platform.
+  platform-example:
+    profiles: ["example"]
+    build:
+      context: ./services/platform-business-logic-example
+      additional_contexts:
+        examples: ./examples
+    image: vacd/platform-business-logic-example:dev
+    container_name: vacd-platform-example
+    depends_on:
+      fhir-server-1:
+        condition: service_healthy
+      ehrbase:
+        condition: service_healthy
+      openfhir:
+        condition: service_healthy
+    environment:
+      FHIR_SERVER_1_URL: "http://fhir-server-1:9111/ch-vacd-api-reference-server/fhir"
+      MAPPER_URL: "http://openfhir:8083"
+      CDR_URL: "http://ehrbase:8080/ehrbase/rest/openehr/v1"
+      CDR_USER: "ehrbase-user"
+      CDR_PASS: "SuperSecretPassword"
+      TEMPLATE_ID: "ch-vacd-immunization administration.v1-alpha"
+      EXAMPLES_DIR: "/examples"
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz | grep -q '\"ok\": true'"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
 
   # Mongo for openFHIR. Internal-only (port 27017 not published). openFHIR
   # is the only client of this Mongo instance, so we skip the usual

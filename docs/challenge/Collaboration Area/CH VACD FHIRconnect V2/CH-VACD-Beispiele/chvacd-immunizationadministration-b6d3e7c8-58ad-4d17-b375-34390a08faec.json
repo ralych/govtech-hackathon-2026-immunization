@@ -1,0 +1,671 @@
+{
+    "resourceType": "Bundle",
+    "id": "19f519e9-83ea-46c1-a600-0569c416992a",
+    "meta": {
+        "profile": [
+            "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-document-immunization-administration"
+        ]
+    },
+    "language": "en-US",
+    "identifier": {
+        "system": "urn:ietf:rfc:3986",
+        "value": "urn:uuid:19f519e9-83ea-46c1-a600-0569c416992a"
+    },
+    "type": "document",
+    "timestamp": "2026-05-23T21:24:43.095+02:00",
+    "entry": [
+        {
+            "fullUrl": "urn:uuid:530f6b74-44d9-442c-8218-b27e0a41d62b",
+            "resource": {
+                "resourceType": "Composition",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-composition-immunization-administration"
+                    ]
+                },
+                "language": "de-CH",
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><table class=\"hapiPropertyTable\"><tbody><tr><td colspan=\"2\">Composition</td></tr><tr><td>Title</td><td>Immunization Administration</td></tr><tr><td>Category</td><td>CH VACD Immunization Administration(urn:oid:2.16.756.5.30.1.127.3.10.10|urn:che:epr:ch-vacd:immunization-administration:2022)</td></tr><tr><td>Identifier</td><td>urn:uuid:c934d888-19e6-4e93-b66b-8f868b219982</td></tr><tr><td>Status</td><td>FINAL</td></tr><tr><td>List Immunization Administration</td><td><p><span>urn:uuid:732f4727-25ff-456f-80dc-70d24648ad09</span><br/></p><p><span>urn:uuid:84232cb1-ad95-4712-9cb1-ab49b8a50809</span><br/></p></td></tr></tbody></table></div>"
+                },
+                "identifier": {
+                    "system": "urn:ietf:rfc:3986",
+                    "value": "urn:uuid:c934d888-19e6-4e93-b66b-8f868b219982"
+                },
+                "status": "final",
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://snomed.info/sct",
+                            "code": "41000179103"
+                        }
+                    ]
+                },
+                "category": [
+                    {
+                        "coding": [
+                            {
+                                "system": "urn:oid:2.16.756.5.30.1.127.3.10.10",
+                                "code": "urn:che:epr:ch-vacd:immunization-administration:2022",
+                                "display": "CH VACD Immunization Administration"
+                            }
+                        ]
+                    },
+                    {
+                        "coding": [
+                            {
+                                "system": "urn:oid:2.16.756.5.30.1.127.3.10.10",
+                                "code": "urn:che:epr:ch-vacd:immunization-administration:2022",
+                                "display": "CH VACD Immunization Administration"
+                            }
+                        ]
+                    }
+                ],
+                "subject": {
+                    "reference": "urn:uuid:d1de7835-0e48-4551-baef-9d5a94b74b40"
+                },
+                "date": "2026-05-23T21:24:43+02:00",
+                "author": [
+                    {
+                        "extension": [
+                            {
+                                "url": "http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-time",
+                                "valueDateTime": "2026-05-23T21:24:43+02:00"
+                            }
+                        ],
+                        "reference": "urn:uuid:1e242899-2792-4740-abce-1594c767a511"
+                    }
+                ],
+                "title": "Immunization Administration",
+                "confidentiality": "N",
+                "_confidentiality": {
+                    "extension": [
+                        {
+                            "url": "http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-epr-confidentialitycode",
+                            "valueCodeableConcept": {
+                                "coding": [
+                                    {
+                                        "system": "http://snomed.info/sct",
+                                        "code": "17621005",
+                                        "display": "Normal (qualifier value)"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "section": [
+                    {
+                        "title": "List Immunization Administration",
+                        "code": {
+                            "coding": [
+                                {
+                                    "system": "http://loinc.org",
+                                    "code": "11369-6"
+                                }
+                            ]
+                        },
+                        "entry": [
+                            {
+                                "reference": "urn:uuid:732f4727-25ff-456f-80dc-70d24648ad09"
+                            },
+                            {
+                                "reference": "urn:uuid:84232cb1-ad95-4712-9cb1-ab49b8a50809"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:d1de7835-0e48-4551-baef-9d5a94b74b40",
+            "resource": {
+                "resourceType": "Patient",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-patient"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Max <b>MUSTER </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Identifier</td><td>7560445502987</td></tr><tr><td>Address</td><td><span>Mustergasse </span><span>CH-</span><span>1234 </span><span>Musterhausen </span></td></tr><tr><td>Date of birth</td><td><span>15 August 1978</span></td></tr></tbody></table></div>"
+                },
+                "identifier": [
+                    {
+                        "system": "urn:oid:2.16.756.5.32",
+                        "value": "7560445502987"
+                    }
+                ],
+                "active": true,
+                "name": [
+                    {
+                        "family": "Muster",
+                        "given": [
+                            "Max"
+                        ]
+                    }
+                ],
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "tel:+41.32.685.12.34"
+                    }
+                ],
+                "gender": "male",
+                "birthDate": "1978-08-15",
+                "address": [
+                    {
+                        "line": [
+                            "Mustergasse"
+                        ],
+                        "city": "Musterhausen",
+                        "postalCode": "1234",
+                        "country": "CH"
+                    }
+                ]
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:1e242899-2792-4740-abce-1594c767a511",
+            "resource": {
+                "resourceType": "PractitionerRole",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitionerrole-epr",
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitionerrole"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><table><tr><td>Practitioner</td><td>Heinz <b>KNOCHENSCHLOSSER </b></td></tr><tr><td>Organization</td><td>Praxis Knochenschlosser</td></tr></table></div>"
+                },
+                "practitioner": {
+                    "reference": "urn:uuid:f97f409c-2a73-4f35-9838-ac6231d23689"
+                },
+                "organization": {
+                    "reference": "urn:uuid:9ea6b998-1813-435b-bb86-991d92f86197"
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:9ea6b998-1813-435b-bb86-991d92f86197",
+            "resource": {
+                "resourceType": "Organization",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-organization-epr",
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-organization"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Praxis Knochenschlosser</div><table class=\"hapiPropertyTable\"><tbody><tr><td>Address</td><td><span>Zentrum </span><span>CH-</span><span>1234 </span><span>Musterhausen </span></td></tr></tbody></table></div>"
+                },
+                "active": true,
+                "name": "Praxis Knochenschlosser",
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "tel:+41.32.234.55.66"
+                    },
+                    {
+                        "system": "fax",
+                        "value": "fax:+41.32.234.55.67"
+                    }
+                ],
+                "address": [
+                    {
+                        "line": [
+                            "Zentrum"
+                        ],
+                        "city": "Musterhausen",
+                        "postalCode": "1234",
+                        "country": "CH"
+                    }
+                ]
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:f97f409c-2a73-4f35-9838-ac6231d23689",
+            "resource": {
+                "resourceType": "Practitioner",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitioner-epr",
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitioner"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Heinz <b>KNOCHENSCHLOSSER </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Identifier</td><td>76310987654315</td></tr><tr><td>Address</td><td><span>Zentrum </span><span>CH-</span><span>1234 </span><span>Musterhausen </span></td></tr></tbody></table></div>"
+                },
+                "identifier": [
+                    {
+                        "system": "urn:oid:2.51.1.3",
+                        "value": "76310987654315"
+                    }
+                ],
+                "active": true,
+                "name": [
+                    {
+                        "family": "Knochenschlosser",
+                        "given": [
+                            "Heinz"
+                        ]
+                    }
+                ],
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "tel:+41.32.234.55.66"
+                    },
+                    {
+                        "system": "fax",
+                        "value": "fax:+41.32.234.55.67"
+                    }
+                ],
+                "address": [
+                    {
+                        "line": [
+                            "Zentrum"
+                        ],
+                        "city": "Musterhausen",
+                        "postalCode": "1234",
+                        "country": "CH"
+                    }
+                ],
+                "gender": "male"
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:8840b388-44b1-4dd9-aca4-6a423ed73e99",
+            "resource": {
+                "resourceType": "PractitionerRole",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitionerrole-epr",
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitionerrole"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><table><tr><td>Practitioner</td><td>Heidi <b>MACHGESUND </b></td></tr><tr><td>Organization</td><td>Praxis Machgesund</td></tr></table></div>"
+                },
+                "practitioner": {
+                    "reference": "urn:uuid:8d2fc7b3-b691-40da-a2a3-bf1309a1a32b"
+                },
+                "organization": {
+                    "reference": "urn:uuid:a4b81501-91e0-4cf6-8ca3-c8dabbc90b02"
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:a4b81501-91e0-4cf6-8ca3-c8dabbc90b02",
+            "resource": {
+                "resourceType": "Organization",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-organization-epr",
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-organization"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Praxis Machgesund</div><table class=\"hapiPropertyTable\"><tbody><tr><td>Address</td><td><span>Arztgasse </span><span>CH-</span><span>8765 </span><span>Beispielhausen </span></td></tr></tbody></table></div>"
+                },
+                "active": true,
+                "name": "Praxis Machgesund",
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "tel:+41.32.234.55.66"
+                    },
+                    {
+                        "system": "fax",
+                        "value": "fax:+41.32.234.55.67"
+                    }
+                ],
+                "address": [
+                    {
+                        "line": [
+                            "Arztgasse"
+                        ],
+                        "city": "Beispielhausen",
+                        "postalCode": "8765",
+                        "country": "CH"
+                    }
+                ]
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:8d2fc7b3-b691-40da-a2a3-bf1309a1a32b",
+            "resource": {
+                "resourceType": "Practitioner",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitioner-epr",
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitioner"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Heidi <b>MACHGESUND </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Identifier</td><td>76310987654322</td></tr><tr><td>Address</td><td><span>Arztgasse </span><span>CH-</span><span>8765 </span><span>Beispielhausen </span></td></tr></tbody></table></div>"
+                },
+                "identifier": [
+                    {
+                        "system": "urn:oid:2.51.1.3",
+                        "value": "76310987654322"
+                    }
+                ],
+                "active": true,
+                "name": [
+                    {
+                        "family": "Machgesund",
+                        "given": [
+                            "Heidi"
+                        ]
+                    }
+                ],
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "tel:+41.32.234.55.66"
+                    },
+                    {
+                        "system": "fax",
+                        "value": "fax:+41.32.234.55.67"
+                    }
+                ],
+                "address": [
+                    {
+                        "line": [
+                            "Arztgasse"
+                        ],
+                        "city": "Beispielhausen",
+                        "postalCode": "8765",
+                        "country": "CH"
+                    }
+                ],
+                "gender": "female"
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:732f4727-25ff-456f-80dc-70d24648ad09",
+            "resource": {
+                "resourceType": "Immunization",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-immunization"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><table class=\"hapiPropertyTable\"><tbody><tr><td colspan=\"2\">Immunization</td></tr><tr><td>Identifier</td><td>urn:uuid:0744bc3f-36a1-4743-8ce7-11c79b20e523</td></tr><tr><td>Status</td><td>COMPLETED</td></tr><tr><td>Vaccine Code</td><td> Comirnaty (COVID-19 Vaccine, Pfizer) </td></tr><tr><td>Vaccination Date</td><td>22 May 2021</td></tr><tr><td>Performer</td><td><div><table><tr><td>Practitioner</td><td>Heidi <b>MACHGESUND </b></td></tr><tr><td>Organization</td><td>Praxis Machgesund</td></tr></table></div></td></tr><tr><td>Target Disease</td><td><span> Disease caused by Severe acute respiratory syndrome coronavirus 2 (disorder) </span></td></tr></tbody></table></div>"
+                },
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-author",
+                        "valueReference": {
+                            "reference": "urn:uuid:1e242899-2792-4740-abce-1594c767a511"
+                        }
+                    },
+                    {
+                        "url": "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-ext-verification-status",
+                        "valueCoding": {
+                            "system": "http://snomed.info/sct",
+                            "code": "59156000",
+                            "display": "Confirmed"
+                        }
+                    }
+                ],
+                "identifier": [
+                    {
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:de4958ce-f416-436b-90b8-880fc6f9f6fe"
+                    },
+                    {
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:0744bc3f-36a1-4743-8ce7-11c79b20e523"
+                    }
+                ],
+                "status": "completed",
+                "vaccineCode": {
+                    "coding": [
+                        {
+                            "system": "http://fhir.ch/ig/ch-vacd/CodeSystem/ch-vacd-swissmedic-cs",
+                            "code": "68225",
+                            "display": "Comirnaty (COVID-19 Vaccine, Pfizer)"
+                        }
+                    ]
+                },
+                "patient": {
+                    "reference": "urn:uuid:d1de7835-0e48-4551-baef-9d5a94b74b40"
+                },
+                "occurrenceDateTime": "2021-05-22",
+                "lotNumber": "M-12345",
+                "performer": [
+                    {
+                        "actor": {
+                            "reference": "urn:uuid:8840b388-44b1-4dd9-aca4-6a423ed73e99"
+                        }
+                    }
+                ],
+                "protocolApplied": [
+                    {
+                        "targetDisease": [
+                            {
+                                "coding": [
+                                    {
+                                        "system": "http://snomed.info/sct",
+                                        "code": "840539006",
+                                        "display": "Disease caused by Severe acute respiratory syndrome coronavirus 2 (disorder)"
+                                    }
+                                ]
+                            }
+                        ],
+                        "doseNumberPositiveInt": 1
+                    }
+                ]
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:029c4233-f14b-4527-b1a8-61e30131e5b1",
+            "resource": {
+                "resourceType": "PractitionerRole",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitionerrole-epr",
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitionerrole"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><table><tr><td>Practitioner</td><td>Peter <b>MÜLLER </b></td></tr><tr><td>Organization</td><td>Gruppenpraxis Müller</td></tr></table></div>"
+                },
+                "practitioner": {
+                    "reference": "urn:uuid:39420455-88d5-499a-bbda-e635cb11b7c6"
+                },
+                "organization": {
+                    "reference": "urn:uuid:6705bd9d-e54d-4c96-976a-10dc64b5ffee"
+                }
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:6705bd9d-e54d-4c96-976a-10dc64b5ffee",
+            "resource": {
+                "resourceType": "Organization",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-organization-epr",
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-organization"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Gruppenpraxis Müller</div><table class=\"hapiPropertyTable\"><tbody><tr><td>Address</td><td><span>Grabenstrasse </span><span>CH-</span><span>8005 </span><span>Zürich </span></td></tr></tbody></table></div>"
+                },
+                "active": true,
+                "name": "Gruppenpraxis Müller",
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "tel:+41.32.234.55.66"
+                    },
+                    {
+                        "system": "email",
+                        "value": "mailto:bereit@gruppenpraxis.ch"
+                    },
+                    {
+                        "system": "url",
+                        "value": "http://www.gruppenpraxis.ch"
+                    }
+                ],
+                "address": [
+                    {
+                        "line": [
+                            "Grabenstrasse"
+                        ],
+                        "city": "Zürich",
+                        "postalCode": "8005",
+                        "country": "CH"
+                    }
+                ]
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:39420455-88d5-499a-bbda-e635cb11b7c6",
+            "resource": {
+                "resourceType": "Practitioner",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitioner-epr",
+                        "http://fhir.ch/ig/ch-core/StructureDefinition/ch-core-practitioner"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Peter <b>MÜLLER </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Identifier</td><td>7601888888884</td></tr><tr><td>Address</td><td><span>Grabenstrasse </span><span>CH-</span><span>8005 </span><span>Zürich </span></td></tr></tbody></table></div>"
+                },
+                "identifier": [
+                    {
+                        "system": "urn:oid:2.51.1.3",
+                        "value": "7601888888884"
+                    }
+                ],
+                "active": true,
+                "name": [
+                    {
+                        "family": "Müller",
+                        "given": [
+                            "Peter"
+                        ]
+                    }
+                ],
+                "telecom": [
+                    {
+                        "system": "phone",
+                        "value": "tel:+41.32.234.55.66"
+                    },
+                    {
+                        "system": "email",
+                        "value": "mailto:allzeit.bereit@gruppenpraxis.ch"
+                    },
+                    {
+                        "system": "url",
+                        "value": "http://www.gruppenpraxis.ch"
+                    }
+                ],
+                "address": [
+                    {
+                        "line": [
+                            "Grabenstrasse"
+                        ],
+                        "city": "Zürich",
+                        "postalCode": "8005",
+                        "country": "CH"
+                    }
+                ],
+                "gender": "unknown"
+            }
+        },
+        {
+            "fullUrl": "urn:uuid:84232cb1-ad95-4712-9cb1-ab49b8a50809",
+            "resource": {
+                "resourceType": "Immunization",
+                "meta": {
+                    "profile": [
+                        "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-immunization"
+                    ]
+                },
+                "text": {
+                    "status": "generated",
+                    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><table class=\"hapiPropertyTable\"><tbody><tr><td colspan=\"2\">Immunization</td></tr><tr><td>Identifier</td><td>urn:uuid:5973bb5c-a154-475a-924f-eb45217fded2</td></tr><tr><td>Status</td><td>COMPLETED</td></tr><tr><td>Vaccine Code</td><td> Comirnaty (COVID-19 Vaccine, Pfizer) </td></tr><tr><td>Vaccination Date</td><td>22 June 2021</td></tr><tr><td>Performer</td><td><div><table><tr><td>Practitioner</td><td>Peter <b>MÜLLER </b></td></tr><tr><td>Organization</td><td>Gruppenpraxis Müller</td></tr></table></div></td></tr><tr><td>Target Disease</td><td><span> Disease caused by Severe acute respiratory syndrome coronavirus 2 (disorder) </span></td></tr></tbody></table></div>"
+                },
+                "extension": [
+                    {
+                        "url": "http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-author",
+                        "valueReference": {
+                            "reference": "urn:uuid:1e242899-2792-4740-abce-1594c767a511"
+                        }
+                    },
+                    {
+                        "url": "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-ext-verification-status",
+                        "valueCoding": {
+                            "system": "http://snomed.info/sct",
+                            "code": "59156000",
+                            "display": "Confirmed"
+                        }
+                    }
+                ],
+                "identifier": [
+                    {
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:8d0848de-b976-4af8-94e7-a1195283ea38"
+                    },
+                    {
+                        "system": "urn:ietf:rfc:3986",
+                        "value": "urn:uuid:5973bb5c-a154-475a-924f-eb45217fded2"
+                    }
+                ],
+                "status": "completed",
+                "vaccineCode": {
+                    "coding": [
+                        {
+                            "system": "http://fhir.ch/ig/ch-vacd/CodeSystem/ch-vacd-swissmedic-cs",
+                            "code": "68225",
+                            "display": "Comirnaty (COVID-19 Vaccine, Pfizer)"
+                        }
+                    ]
+                },
+                "patient": {
+                    "reference": "urn:uuid:d1de7835-0e48-4551-baef-9d5a94b74b40"
+                },
+                "occurrenceDateTime": "2021-06-22",
+                "lotNumber": "M-12345",
+                "performer": [
+                    {
+                        "actor": {
+                            "reference": "urn:uuid:029c4233-f14b-4527-b1a8-61e30131e5b1"
+                        }
+                    }
+                ],
+                "protocolApplied": [
+                    {
+                        "targetDisease": [
+                            {
+                                "coding": [
+                                    {
+                                        "system": "http://snomed.info/sct",
+                                        "code": "840539006",
+                                        "display": "Disease caused by Severe acute respiratory syndrome coronavirus 2 (disorder)"
+                                    }
+                                ]
+                            }
+                        ],
+                        "doseNumberPositiveInt": 1
+                    }
+                ]
+            }
+        }
+    ]
+}

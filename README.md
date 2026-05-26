@@ -14,8 +14,11 @@ openEHR Clinical Data Repository — that's the challenge, not the harness.
    Kotlin 2.3.21, Docker, `gh`, and the Claude/Gemini/Codex CLIs.
 2. Inside the container terminal:
    ```sh
-   docker compose up
+   docker compose up --wait
    ```
+   This builds the FHIR server from source (multi-stage Docker build, no
+   local Maven needed) and waits until all services pass their
+   healthchecks before returning.
 3. Smoke-test a service:
    ```sh
    curl http://fhir-server-1:9111/ch-vacd-api-reference-server/fhir/metadata
@@ -32,7 +35,7 @@ openEHR Clinical Data Repository — that's the challenge, not the harness.
 | `fhir-server-2`  | 9112  | same image, second JVM                              | Optional, commented out in `docker-compose.yml`. Enable for producer/consumer split topologies. |
 | `ehrbase`        | 8082  | `ehrbase/ehrbase:2.31.0`                            | openEHR CDR. BASIC auth: `ehrbase-user` / `SuperSecretPassword`. |
 | `ehrbase-db`     | —     | `ehrbase/ehrbase-v2-postgres:16.2`                  | Postgres for EHRbase. Internal-only. |
-| `openfhir`       | 8083  | `openfhir/openfhir:2.2.1` (`linux/amd64`)           | FHIR ⇄ openEHR mapping engine. |
+| `openfhir`       | 8083  | `openfhir/openfhir:2.2.3` (`linux/amd64`)           | FHIR ⇄ openEHR mapping engine. |
 | `openfhir-mongo` | —     | `mongo:7.0`                                         | openFHIR's config store. Internal-only. |
 
 Connection URLs are exported to the dev container as `FHIR_SERVER_1_URL`,
@@ -60,10 +63,17 @@ for your platform layer — all forwarded by the dev container. Run your
 service inside the container terminal; reach it from your host browser
 like any localhost service.
 
-One worked example, **PBLL (Platform Business Logic Layer)**, lives at
-[`services/pbll/`](services/pbll/) — Kotlin + Ktor, Pattern A,
-write-path only. It's there to copy, extend, or ignore. Canonical
-test Bundles live under [`examples/`](examples/).
+A **Platform Business Logic Example** lives at
+[`services/platform-business-logic-example/`](services/platform-business-logic-example/)
+— a minimal Kotlin/Ktor smoke-test that was used to validate the harness
+end-to-end. It is **not** a reference architecture or starting point;
+teams should design their own platform layer from scratch. To see it
+run alongside the backing services:
+```sh
+docker compose --profile example up --wait
+# then open http://localhost:8080/demo
+```
+Canonical test Bundles live under [`examples/`](examples/).
 
 ## Repo layout
 
@@ -71,13 +81,13 @@ test Bundles live under [`examples/`](examples/).
 .devcontainer/         dev container config + post-create.sh
 docker-compose.yml     the backing services above
 services/
-  ch-vacd-api-reference-server/   HAPI FHIR + CH VACD ResourceProviders
-  pbll/                           example platform layer (Kotlin/Ktor)
+  ch-vacd-api-reference-server/          HAPI FHIR + CH VACD ResourceProviders
+  platform-business-logic-example/       harness smoke-test (Kotlin/Ktor, not a template)
 examples/              canonical CH VACD example Bundles + round-trip script
 docs/
   architecture/        Pattern A / Pattern B reference
   challenge/           original hackathon brief + openEHR template
-  demo/                rendered PDF and screenshots of the PBLL example
+  demo/                rendered PDF and screenshots of the example platform
 progress/              branch-scoped chronological progress notes
 ```
 

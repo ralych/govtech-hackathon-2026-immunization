@@ -13,13 +13,15 @@ for locally-built containers, `examples/` (canonical CH VACD test
 Bundles), and `docs/`. The **platform layer** that mediates between
 the CH VACD FHIR API and the openEHR Clinical Data Repository is what
 hackathon participants build — it is deliberately not pre-decided by the
-harness, and `docker-compose.yml` must not contain it.
+harness. The default `docker compose up` starts only the backing services;
+participant platform layers do **not** belong in the default service set.
 
-The project currently ships **one example platform**, the **PBLL** — short for **Platform
-Business Logic Layer** — at `services/pbll/`. It is a *reference*
-implementation of Pattern A (a Kotlin/Ktor FHIR facade over openEHR), not
-*the* implementation. Teams are expected to write their own, in whatever
-language and shape they prefer; the PBLL is there to copy, extend, or
-ignore. Do **not** add it to `docker-compose.yml` — participants run it
-themselves with `java -jar` from the dev container.
+The repo also contains a **Platform Business Logic Example** at
+`services/platform-business-logic-example/`. This is a **harness
+smoke-test** — it was built to validate that the backing services work
+end-to-end, not to serve as a starting point or reference architecture
+for participants. Teams should design their own platform layer from
+scratch; the example exists only to prove the plumbing works. It is
+gated behind the `example` compose profile (`docker compose --profile
+example up --wait`) so it never starts by default.
 

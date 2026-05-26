@@ -1,0 +1,114 @@
+archetype (adl_version=1.4; uid=e58b3d10-2ce2-4e26-8c8c-303177487f64)
+	openEHR-EHR-CLUSTER.ch_vacd_source_information.v0
+
+concept
+	[at0000]
+
+language
+	original_language = <[ISO_639-1::en]>
+
+description
+	original_author = <
+		["date"] = <"2026-05-13">
+		["name"] = <"Jean-Pierre Messerli">
+		["organisation"] = <"JPM Consulting GmbH">
+		["email"] = <"jean-pierre.messerli@jpm-consulting.ch">
+	>
+	lifecycle_state = <"unmanaged">
+	details = <
+		["en"] = <
+			language = <[ISO_639-1::en]>
+			purpose = <"To record CH VACD-specific information about the origin, provenance, verification and data quality of immunization-related source data.">
+			keywords = <"immunization, vaccination, CH-VACD", ...>
+			use = <"Use to record source-related information when representing CH VACD immunization data in openEHR. This cluster is intended to be used where information about the origin, trustworthiness, verification, traceability or completeness of source data needs to be represented in a structured and queryable form. When used within ACTION.medication, the information should refer to the specific immunization entry represented by that ACTION. When used at Composition context level, the information should refer to the source document or source context as a whole. The cluster may be constrained in templates according to the requirements of a specific CH VACD implementation.">
+			misuse = <"Not to be used to record the clinical content of the vaccination administration itself, such as the administered vaccine, administration time, route, anatomical administration site, administered quantity or product details. Use appropriate clinical ACTION and CLUSTER archetypes for these data. Not to be used as a replacement for feeder_audit when the complete original source content needs to be retained. Use feeder_audit or another agreed provenance mechanism to preserve the original source data. Not to be used for information that clearly belongs to the general Composition context, unless the cluster is intentionally placed at Composition context level and the scope is document-wide rather than entry-specific.">
+		>
+	>
+	other_details = <
+		["licence"] = <"This work is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/4.0/.">
+		["custodian_organisation"] = <"openEHR Foundation">
+		["references"] = <"https://www.fhir.ch/ig/ch-vacd/StructureDefinition-ch-vacd-immunization.html">
+		["original_namespace"] = <"org.openehr">
+		["original_publisher"] = <"openEHR Foundation">
+		["custodian_namespace"] = <"org.openehr">
+		["MD5-CAM-1.0.1"] = <"95f6f2d70981602b567483fe79cb81df">
+		["build_uid"] = <"44aef6de-44dd-3bc0-8730-ebad8dc39a17">
+	>
+
+definition
+	CLUSTER[at0000] matches {    -- CH VACD source information
+		items cardinality matches {1..*; unordered} matches {
+			ELEMENT[at0002] occurrences matches {0..*} matches {    -- Source immunization identifier
+				value matches {
+					DV_IDENTIFIER matches {*}
+				}
+			}
+			ELEMENT[at0001] occurrences matches {0..1} matches {    -- Verification status
+				value matches {
+					DV_TEXT matches {*}
+				}
+			}
+			CLUSTER[at0003] occurrences matches {0..1} matches {    -- Source data details
+				items cardinality matches {1..*; unordered} matches {
+					ELEMENT[at0004] occurrences matches {0..1} matches {    -- Occurrence data absent reason
+						value matches {
+							DV_TEXT matches {*}
+						}
+					}
+					ELEMENT[at0005] occurrences matches {0..1} matches {    -- Source recorded date
+						value matches {
+							DV_DATE_TIME matches {*}
+						}
+					}
+				}
+			}
+		}
+	}
+
+ontology
+	term_definitions = <
+		["en"] = <
+			items = <
+				["at0000"] = <
+					text = <"CH VACD source information">
+					description = <"Source, provenance, verification and data-quality information associated with CH VACD immunization data.">
+				>
+				["at0001"] = <
+					text = <"Verification status">
+					description = <"The verification status of the CH VACD immunization source information, indicating whether the immunization entry has been verified. This field is mandatory in the CH VACD Immunization profile.
+
+FHIR mapping: Immunization.extension:verificationStatus.">
+					comment = <"FHIR terminology binding to the CH VACD verification status value set. Expansion via tx.fhir.ch:
+https://tx.fhir.ch/r4/ValueSet/$expand?url=http://fhir.ch/ig/ch-vacd/ValueSet/ch-vacd-verification-status-vs&_format=json">
+				>
+				["at0002"] = <
+					text = <"Source immunization identifier">
+					description = <"Identifier assigned to the source CH VACD immunization entry for traceability, matching or reconciliation.">
+					comment = <"This data element represents the business identifier of the source Immunization resource. It should be distinguished from the FHIR logical resource id, which is mapped separately from Immunization.id if required. The identifier may be used for traceability, matching, deduplication or reconciliation of imported CH VACD immunization entries.
+
+FHIR mapping: Immunization.identifier.">
+				>
+				["at0003"] = <
+					text = <"Source data details">
+					description = <"">
+				>
+				["at0004"] = <
+					text = <"Occurrence data absent reason">
+					description = <"Reason why the structured vaccination administration date or time is absent from the source data.
+
+This data element should be constrained to DV_CODED_TEXT in a template and bound to the HL7 FHIR Data Absent Reason value set, where possible. It describes why the structured administration date or time is missing and must not be used as the vaccination administration time.
+
+FHIR mapping: Immunization.occurrenceDateTime.extension:data-absent-reason.valueCode.">
+					comment = <"FHIR terminology binding to the HL7 FHIR Data Absent Reason value set. Expansion via tx.fhir.ch:
+https://tx.fhir.ch/r4/ValueSet/$expand?url=http://hl7.org/fhir/ValueSet/data-absent-reason&_format=json">
+				>
+				["at0005"] = <
+					text = <"Source recorded date">
+					description = <"Date and time when the source CH VACD immunization entry was first recorded in the source system.">
+					comment = <"This is the recording time of the source immunization entry, not the vaccination administration time and not the openEHR commit time.
+
+FHIR mapping: Immunization.recorded.">
+				>
+			>
+		>
+	>

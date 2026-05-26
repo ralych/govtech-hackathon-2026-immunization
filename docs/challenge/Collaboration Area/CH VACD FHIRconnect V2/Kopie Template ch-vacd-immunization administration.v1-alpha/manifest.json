@@ -1,0 +1,85 @@
+{
+  "modelVersion" : 1,
+  "sources" : [ {
+    "sourceType" : "repository",
+    "id" : "immuniza-3c1",
+    "user" : "jean-pierre.messerli@jpm-consulting.ch@google",
+    "repositoryId" : "immuniza-3c1"
+  } ],
+  "entries" : [ {
+    "path" : "Templates/ch-vacd-immunization administration.v1-alpha.t.json",
+    "type" : "template",
+    "id" : "ch-vacd-immunization administration.v1-alpha",
+    "sourceId" : "immuniza-3c1",
+    "lastModified" : "2026-05-14T08:19:42.761220888Z",
+    "dependsOn" : [ {
+      "type" : "archetype",
+      "reference" : "openEHR-EHR-CLUSTER.dosage.v2"
+    }, {
+      "type" : "archetype",
+      "reference" : "openEHR-EHR-CLUSTER.ch_vacd_immunization_protocol.v0"
+    }, {
+      "type" : "archetype",
+      "reference" : "openEHR-EHR-CLUSTER.adverse_reaction_event.v1"
+    }, {
+      "type" : "archetype",
+      "reference" : "openEHR-EHR-ACTION.medication.v1"
+    }, {
+      "type" : "archetype",
+      "reference" : "openEHR-EHR-CLUSTER.ch_vacd_source_information.v0"
+    }, {
+      "type" : "archetype",
+      "reference" : "openEHR-EHR-CLUSTER.medication.v2"
+    }, {
+      "type" : "archetype",
+      "reference" : "openEHR-EHR-COMPOSITION.encounter.v1"
+    } ]
+  }, {
+    "path" : "Templates/ch-vacd-immunization administration.v1-alpha.opt",
+    "type" : "opt",
+    "id" : "ch-vacd-immunization administration.v1-alpha",
+    "lastModified" : "2026-05-14T08:19:42.761227648Z"
+  }, {
+    "path" : "Archetypes/openEHR-EHR-CLUSTER.dosage.v2.adl",
+    "type" : "archetype",
+    "id" : "openEHR-EHR-CLUSTER.dosage.v2",
+    "sourceId" : "immuniza-3c1",
+    "lastModified" : "2026-05-14T08:19:42.761231048Z"
+  }, {
+    "path" : "Archetypes/openEHR-EHR-CLUSTER.ch_vacd_immunization_protocol.v0.adl",
+    "type" : "archetype",
+    "id" : "openEHR-EHR-CLUSTER.ch_vacd_immunization_protocol.v0",
+    "sourceId" : "immuniza-3c1",
+    "lastModified" : "2026-05-14T08:19:42.761232128Z"
+  }, {
+    "path" : "Archetypes/openEHR-EHR-CLUSTER.adverse_reaction_event.v1.adl",
+    "type" : "archetype",
+    "id" : "openEHR-EHR-CLUSTER.adverse_reaction_event.v1",
+    "sourceId" : "immuniza-3c1",
+    "lastModified" : "2026-05-14T08:19:42.761233248Z"
+  }, {
+    "path" : "Archetypes/openEHR-EHR-ACTION.medication.v1.adl",
+    "type" : "archetype",
+    "id" : "openEHR-EHR-ACTION.medication.v1",
+    "sourceId" : "immuniza-3c1",
+    "lastModified" : "2026-05-14T08:19:42.761233808Z"
+  }, {
+    "path" : "Archetypes/openEHR-EHR-CLUSTER.ch_vacd_source_information.v0.adl",
+    "type" : "archetype",
+    "id" : "openEHR-EHR-CLUSTER.ch_vacd_source_information.v0",
+    "sourceId" : "immuniza-3c1",
+    "lastModified" : "2026-05-14T08:19:42.761234368Z"
+  }, {
+    "path" : "Archetypes/openEHR-EHR-CLUSTER.medication.v2.adl",
+    "type" : "archetype",
+    "id" : "openEHR-EHR-CLUSTER.medication.v2",
+    "sourceId" : "immuniza-3c1",
+    "lastModified" : "2026-05-14T08:19:42.761234728Z"
+  }, {
+    "path" : "Archetypes/openEHR-EHR-COMPOSITION.encounter.v1.adl",
+    "type" : "archetype",
+    "id" : "openEHR-EHR-COMPOSITION.encounter.v1",
+    "sourceId" : "immuniza-3c1",
+    "lastModified" : "2026-05-14T08:19:42.761234968Z"
+  } ]
+}

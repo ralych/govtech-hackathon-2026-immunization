@@ -8,9 +8,10 @@ referencing a `Patient`, `Practitioner`, `Organization`,
 `PractitionerRole`, `Immunization`, and a `Binary` payload (per the
 [CH VACD IG](https://fhir.ch/ig/ch-vacd/)).
 
-These are **harness assets**, not PBLL-internal fixtures. Any platform
-implementation (the example PBLL under `services/pbll/`, or one a team
-writes) should test against the Bundles here.
+These are **harness assets**, not internal to the example platform. Any
+platform implementation (the example under
+`services/platform-business-logic-example/`, or one a team writes) should
+test against the Bundles here.
 
 ## What's in here
 

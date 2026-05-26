@@ -25,13 +25,21 @@
       "installTools": true
     }
   },
+  "overrideFeatureInstallOrder": [
+    "ghcr.io/devcontainers/features/common-utils",
+    "ghcr.io/devcontainers/features/node",
+    "ghcr.io/devcontainers/features/python",
+    "ghcr.io/devcontainers/features/java"
+  ],
   "initializeCommand": "docker network create vacd-net 2>/dev/null || true",
   "runArgs": ["--network=vacd-net"],
   "containerEnv": {
     "FHIR_SERVER_1_URL": "http://fhir-server-1:9111/ch-vacd-api-reference-server/fhir",
     "FHIR_SERVER_2_URL": "http://fhir-server-2:9112/ch-vacd-api-reference-server/fhir",
     "CDR_URL": "http://ehrbase:8080/ehrbase/rest/openehr/v1",
-    "MAPPER_URL": "http://openfhir:8083"
+    "MAPPER_URL": "http://openfhir:8083",
+    "CDR_USER": "ehrbase-user",
+    "CDR_PASS": "SuperSecretPassword"
   },
   "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {

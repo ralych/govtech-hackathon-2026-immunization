@@ -1,0 +1,7 @@
+.gradle/
+build/
+.idea/
+*.iml
+playwright/node_modules/
+playwright/shots/
+playwright/package-lock.json
