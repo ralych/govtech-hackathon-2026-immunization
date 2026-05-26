@@ -4,6 +4,9 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.support.DefaultProfileValidationSupport;
 import ca.uhn.fhir.context.support.IValidationSupport;
 import ca.uhn.fhir.rest.server.RestfulServer;
+import ca.uhn.fhir.rest.server.interceptor.RequestValidatingInterceptor;
+import ca.uhn.fhir.rest.server.interceptor.ResponseValidatingInterceptor;
+import ca.uhn.fhir.validation.ResultSeverityEnum;
 import ca.uhn.fhir.rest.openapi.OpenApiInterceptor;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import jakarta.servlet.Servlet;
@@ -77,6 +80,17 @@ public class FhirServletConfig {
 			});
 			server.setResourceProviders(filteredProviders);
 		}
+		
+		RequestValidatingInterceptor reqValidatorInterceptor = new RequestValidatingInterceptor();
+		reqValidatorInterceptor.setFailOnSeverity(ResultSeverityEnum.ERROR);
+//		reqValidatorInterceptor.setAddResponseHeaderOnSeverity(ResultSeverityEnum.WARNING);
+		server.registerInterceptor(reqValidatorInterceptor);
+
+		ResponseValidatingInterceptor resValidatorInterceptor = new ResponseValidatingInterceptor();
+		resValidatorInterceptor.setFailOnSeverity(ResultSeverityEnum.ERROR);
+//		resValidatorInterceptor.setAddResponseHeaderOnSeverity(ResultSeverityEnum.WARNING);
+		server.registerInterceptor(resValidatorInterceptor);
+		
 
 		// Try to register the HAPI OpenAPI interceptor if present on the classpath
 		try {
