@@ -2,9 +2,7 @@
 
 Minimal smoke-test used to validate that the harness backing services
 (FHIR server, openFHIR, EHRbase) work together end-to-end. Implements
-a Pattern A write path in Kotlin/Ktor. See
-[`docs/architecture/patterns.md`](../../docs/architecture/patterns.md)
-for the pattern definition.
+a write path in Kotlin/Ktor.
 
 > **This is not a starting point or template.** Hackathon participants
 > should design and build their own platform layer from scratch, in
@@ -17,7 +15,7 @@ for the pattern definition.
 **Option A — via Docker Compose profile** (recommended):
 ```bash
 docker compose --profile example up --wait
-# then open http://localhost:8080/demo
+# then open http://localhost:8888/demo
 ```
 
 **Option B — from source** (useful during development):
@@ -35,7 +33,7 @@ container (`FHIR_SERVER_1_URL`, `MAPPER_URL`, `CDR_URL`, `CDR_USER`,
 `CDR_PASS`) and as defaults in `application.conf` — no manual exports
 needed.
 
-Then open <http://localhost:8080/demo> in a browser.
+Then open <http://localhost:8888/demo> in a browser.
 
 ## Endpoints
 

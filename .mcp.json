@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser",
+        "chromium"
+      ],
+      "env": {}
+    },
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ],
+      "env": {}
+    },
+    "openEHR": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "--network=vacd-net",
+        "-e", "EHRBASE_URL=http://ehrbase-user:SuperSecretPassword@ehrbase:8080/ehrbase/rest",
+        "-e", "EHRBASE_JSON_FORMAT=wt_flat",
+        "ctodeakai/openehr-mcp-server:latest"
+      ]
+    }
+    }
+}

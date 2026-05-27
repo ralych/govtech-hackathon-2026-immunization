@@ -37,7 +37,7 @@ def header(c, title, subtitle=None):
     c.setFillColor(MUTED)
     c.setFont("Helvetica", 8)
     c.drawRightString(PAGE_W - MARGIN_X, PAGE_H - MARGIN_Y + 6,
-                      "Pattern A — Platform Business Logic Example")
+                      "Platform Business Logic Example")
     c.setFillColor(TEXT)
     c.setFont("Helvetica-Bold", 22)
     c.drawString(MARGIN_X, PAGE_H - MARGIN_Y - 18, title)
@@ -118,7 +118,7 @@ def cover_page(c):
     c.drawString(MARGIN_X, PAGE_H - MARGIN_Y - 10, "●  CH VACD — Swiss Vaccination Showcase")
     c.setFillColor(TEXT)
     c.setFont("Helvetica-Bold", 36)
-    c.drawString(MARGIN_X, PAGE_H - MARGIN_Y - 60, "Pattern A")
+    c.drawString(MARGIN_X, PAGE_H - MARGIN_Y - 60, "Platform Example")
     c.setFillColor(TEXT)
     c.setFont("Helvetica-Bold", 28)
     c.drawString(MARGIN_X, PAGE_H - MARGIN_Y - 92, "Immunization Write Path — V2 FHIRconnect")
@@ -142,7 +142,7 @@ def cover_page(c):
     c.setFillColor(MUTED)
     c.setFont("Helvetica-Oblique", 10)
     c.drawString(MARGIN_X, MARGIN_Y + 16,
-                 "Hackathon harness — services/platform-business-logic-example/  ·  docs/architecture/patterns.md")
+                 "Hackathon harness — services/platform-business-logic-example/")
 
 
 def flow_page(c):
@@ -214,14 +214,13 @@ def summary_page(c):
         "Read path — vaccination-record template + tofhir mapping (loaded, not yet tested)",
         "Profile validation — HAPI FhirValidator + CH VACD StructureDefinitions",
         "Terminology lookups — live tx.fhir.ch/r4 for code system validation",
-        "Pattern B — inbound/outbound connectors for producer/consumer split",
     ]
     c.setFillColor(TEXT)
     c.setFont("Helvetica", 10.5)
     for line in next_up:
         c.drawString(MARGIN_X + 8, y, line)
         y -= 16
-    add_caption(c, "Reference: services/platform-business-logic-example/  ·  docs/architecture/patterns.md")
+    add_caption(c, "Reference: services/platform-business-logic-example/")
 
 
 PAGES = [cover_page, flow_page]

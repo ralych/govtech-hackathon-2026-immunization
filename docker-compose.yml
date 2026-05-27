@@ -1,17 +1,16 @@
 # Swiss GovTech Hackathon 2026 — VACD harness backing services.
 #
 # All backing services run default-on; the harness does not pick a topology.
-# Teams build the platform layer themselves (see docs/architecture/patterns.md
-# for Pattern A / Pattern B references and
+# Teams build the platform layer themselves (see
 # services/platform-business-logic-example/ for one example implementation).
 # The platform layer is NOT included by default — the dev container forwards
-# ports 3000/3001/8000/8001/8080/8081 for participants to run their own
-# service on. An example platform (Pattern A tracer bullet) is available
-# behind the `example` profile: `docker compose --profile example up --wait`.
+# ports 3000–3001/8000–8001/8080–8081/8888–8889 for participants to run their own
+# service on. An example platform (harness smoke-test) is available behind
+# the `example` profile: `docker compose --profile example up --wait`.
 #
 # One CH VACD FHIR server runs by default on 9111. A second identical
 # instance for 9112 is defined below but commented out — teams that want
-# a producer/consumer split (typically Pattern B) can uncomment it and
+# a producer/consumer split can uncomment it and
 # `docker compose up -d fhir-server-2`. The dev container forwards both
 # 9111 and 9112 either way.
 
@@ -20,12 +19,21 @@ name: vacd-hackathon
 services:
   # CH VACD FHIR API reference server — instance 1.
   # Multi-stage build: Maven runs inside Docker, no local mvn/java prereqs.
-  # H2 in-memory, no volume.
+  # Postgres-backed (fhir-db) for persistence across restarts.
   fhir-server-1:
     build:
       context: ./services/ch-vacd-api-reference-server
     image: vacd/ch-vacd-api-reference-server:dev
     container_name: vacd-fhir-server-1
+    depends_on:
+      fhir-db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://fhir-db:5432/chvacdapirefserver
+      SPRING_DATASOURCE_USERNAME: vacduser
+      SPRING_DATASOURCE_PASSWORD: vacduser
+      SPRING_DATASOURCE_DRIVERCLASSNAME: org.postgresql.Driver
+      SPRING_JPA_DATABASEPLATFORM: org.hibernate.dialect.PostgreSQLDialect
     ports:
       - "9111:9111"
     healthcheck:
@@ -40,23 +48,53 @@ services:
   # bring it up at least once before starting this one to avoid a
   # parallel-build race on the shared image tag. SERVER_PORT moves Tomcat
   # to 9112 so internal=external matches and startup logs match the URL
-  # participants hit.
+  # participants hit. Shares fhir-db but uses its own database.
   #
   # fhir-server-2:
   #   image: vacd/ch-vacd-api-reference-server:dev
   #   pull_policy: never
   #   container_name: vacd-fhir-server-2
+  #   depends_on:
+  #     fhir-db:
+  #       condition: service_healthy
   #   environment:
   #     SERVER_PORT: "9112"
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://fhir-db:5432/chvacdapirefserver2
+  #     SPRING_DATASOURCE_USERNAME: vacduser
+  #     SPRING_DATASOURCE_PASSWORD: vacduser
+  #     SPRING_DATASOURCE_DRIVERCLASSNAME: org.postgresql.Driver
+  #     SPRING_JPA_DATABASEPLATFORM: org.hibernate.dialect.PostgreSQLDialect
   #   ports:
   #     - "9112:9112"
+
+  # Postgres for FHIR server(s). Plain postgres:16-alpine — Hibernate
+  # auto-creates the schema on first connect, so no init SQL is needed
+  # beyond creating the database + role. If enabling fhir-server-2, create
+  # its database first:
+  #   docker exec vacd-fhir-db createdb -U vacduser chvacdapirefserver2
+  # Port is NOT exposed on the host — only the FHIR servers reach it over
+  # the compose default network.
+  fhir-db:
+    image: postgres:16-alpine
+    container_name: vacd-fhir-db
+    environment:
+      POSTGRES_USER: vacduser
+      POSTGRES_PASSWORD: vacduser
+      POSTGRES_DB: chvacdapirefserver
+    volumes:
+      - fhir-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vacduser -d chvacdapirefserver"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   # openEHR Clinical Data Repository.
   # BASIC auth instead of upstream's Keycloak setup — keeps the working set
   # lean and removes a moving part participants don't need. Override via
   # SECURITY_AUTHTYPE=OAUTH at compose time if a team wants to bring their
   # own IdP. Internal container port is 8080 (Spring Boot default); host
-  # port is 8082 to leave 8080 free for participants' platform layer.
+  # port is 8082 to avoid conflicts with common dev-server ports.
   ehrbase:
     image: ehrbase/ehrbase:2.31.0
     container_name: vacd-ehrbase
@@ -100,6 +138,8 @@ services:
       EHRBASE_PASSWORD_ADMIN: ehrbase
       EHRBASE_USER: ehrbase_restricted
       EHRBASE_PASSWORD: ehrbase_restricted
+    volumes:
+      - ehrbase-db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -134,7 +174,7 @@ services:
       start_period: 30s
       retries: 12
 
-  # Example platform layer — Pattern A tracer bullet (Kotlin/Ktor).
+  # Example platform layer — harness smoke-test (Kotlin/Ktor).
   # Profile-gated: only starts with `docker compose --profile example up`.
   # Not part of the default harness — participants build their own platform.
   platform-example:
@@ -161,9 +201,9 @@ services:
       TEMPLATE_ID: "ch-vacd-immunization administration.v1-alpha"
       EXAMPLES_DIR: "/examples"
     ports:
-      - "8080:8080"
+      - "8888:8888"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz | grep -q '\"ok\": true'"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8888/healthz | grep -q '\"ok\": true'"]
       interval: 10s
       timeout: 5s
       start_period: 30s
@@ -182,6 +222,8 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
+    volumes:
+      - openfhir-mongo-data:/data/db
     healthcheck:
       test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ping:1}).ok' | grep -q 1"]
       interval: 5s
@@ -197,6 +239,11 @@ services:
 # etc.) instead of host.docker.internal — identical behaviour on macOS/Windows/Linux,
 # no port-forwarding hairpin through the host. Published ports on each service
 # are still exposed for host-side tools (browsers, Postman).
+volumes:
+  fhir-db-data:
+  ehrbase-db-data:
+  openfhir-mongo-data:
+
 networks:
   default:
     name: vacd-net

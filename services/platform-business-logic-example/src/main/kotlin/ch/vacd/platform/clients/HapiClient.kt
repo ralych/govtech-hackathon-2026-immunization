@@ -20,13 +20,9 @@ import kotlinx.serialization.json.put
 /**
  * Thin client for fhir-server-1 (HAPI 8.8.1, CH VACD reference server).
  *
- * Limitations confirmed live 2026-05-16:
- *  - $validate not supported (HTTP 400).
- *  - Bundle search not supported (HTTP 400).
- *  - identifier search not supported (HTTP 400).
- *  - GET /Patient/{unknown} returns HTTP 200 + stub Patient {family:"Test",given:["Patient"]}.
- *
- * For the tracer bullet we always POST (create); we don't try to upsert by identifier.
+ * The server validates incoming resources against CH VACD IG profiles via
+ * RequestValidatingInterceptor. POST /Bundle stores the Bundle itself and
+ * extracts each entry resource so they are individually searchable.
  */
 class HapiClient(private val baseUrl: String) {
     private val http = HttpClient(CIO) {
@@ -56,6 +52,18 @@ class HapiClient(private val baseUrl: String) {
         val parsed = json.parseToJsonElement(text) as? JsonObject
         val id = (parsed?.get("id") as? JsonPrimitive)?.content
         return id ?: throw RuntimeException("HAPI POST /$resourceType: no id in response: $text")
+    }
+
+    suspend fun postBundle(body: String): JsonObject {
+        val resp = http.post("$baseUrl/Bundle") {
+            contentType(ContentType.parse("application/fhir+json"))
+            setBody(body)
+        }
+        val text = resp.bodyAsText()
+        if (!resp.status.isSuccess()) {
+            throw RuntimeException("HAPI POST /Bundle failed ${resp.status.value}: $text")
+        }
+        return json.parseToJsonElement(text) as JsonObject
     }
 
     suspend fun get(resourceType: String, id: String): Pair<HttpStatusCode, String> {

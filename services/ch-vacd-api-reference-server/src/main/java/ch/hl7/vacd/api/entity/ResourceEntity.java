@@ -30,7 +30,7 @@ public class ResourceEntity {
     @Column(name = "version")
     private int version = 1;
 
-    @Column(name = "json", columnDefinition = "CLOB")
+    @Column(name = "json", columnDefinition = "TEXT")
     private String json;
 
     public Long getId() {

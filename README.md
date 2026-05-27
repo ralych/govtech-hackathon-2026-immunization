@@ -42,7 +42,7 @@ Connection URLs are exported to the dev container as `FHIR_SERVER_1_URL`,
 `FHIR_SERVER_2_URL`, `CDR_URL`, `MAPPER_URL` (see
 `.devcontainer/devcontainer.json`). The two FHIR servers are
 intentionally generic — the harness does **not** assign them
-producer/consumer roles; that's a Pattern B choice.
+producer/consumer roles; teams decide their own topology.
 
 ## What you build
 
@@ -52,16 +52,10 @@ The challenge has three pieces, all participant-built:
 - The **platform layer** that lands it in openEHR and serves it back out.
 - A **consumer** that fetches and renders a **CH VACD Vaccination Record Document**.
 
-Two architecture patterns are documented in
-[`docs/architecture/patterns.md`](docs/architecture/patterns.md):
-**Pattern A** (the platform is the system of record) and **Pattern B**
-(the platform is an integration layer over external FHIR systems). Pick
-whichever gets you to a working flow fastest.
-
-The harness reserves host ports **3000, 3001, 8000, 8001, 8080, 8081**
-for your platform layer — all forwarded by the dev container. Run your
-service inside the container terminal; reach it from your host browser
-like any localhost service.
+The harness reserves host ports **3000–3001, 8000–8001, 8080–8081,
+8888–8889** for your platform layer — all forwarded by the dev
+container. Run your service inside the container terminal; reach it
+from your host browser like any localhost service.
 
 A **Platform Business Logic Example** lives at
 [`services/platform-business-logic-example/`](services/platform-business-logic-example/)
@@ -71,7 +65,7 @@ teams should design their own platform layer from scratch. To see it
 run alongside the backing services:
 ```sh
 docker compose --profile example up --wait
-# then open http://localhost:8080/demo
+# then open http://localhost:8888/demo
 ```
 Canonical test Bundles live under [`examples/`](examples/).
 
@@ -85,7 +79,6 @@ services/
   platform-business-logic-example/       harness smoke-test (Kotlin/Ktor, not a template)
 examples/              canonical CH VACD example Bundles + round-trip script
 docs/
-  architecture/        Pattern A / Pattern B reference
   challenge/           original hackathon brief + openEHR template
   demo/                rendered PDF and screenshots of the example platform
 progress/              branch-scoped chronological progress notes

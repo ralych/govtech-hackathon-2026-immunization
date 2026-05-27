@@ -60,10 +60,11 @@
       }
     }
   },
-  "forwardPorts": [3000, 3001, 8000, 8001, 8080, 8081, 8082, 8083, 9111, 9112],
+  "forwardPorts": [3000, 3001, 8000, 8001, 8080, 8081, 8082, 8083, 8888, 8889, 9111, 9112],
   "portsAttributes": {
     "8082": { "label": "EHRbase (openEHR CDR)" },
     "8083": { "label": "openFHIR (Mapping Engine)" },
+    "8888": { "label": "Platform Example" },
     "9111": { "label": "CH VACD FHIR Server 1" },
     "9112": { "label": "CH VACD FHIR Server 2" }
   }

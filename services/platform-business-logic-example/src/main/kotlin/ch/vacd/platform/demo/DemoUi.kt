@@ -73,7 +73,7 @@ fun Route.demoRoutes(ingest: ImmunizationIngest, cdr: EhrbaseClient, examples: E
 private fun HTML.renderDemoPage(initialJson: String, initialSlug: String, exampleList: List<Pair<String, String>>) {
     head {
         meta(charset = "utf-8")
-        title("CH VACD — Pattern A Tracer Bullet")
+        title("CH VACD — Platform Example")
         link(rel = "preconnect", href = "https://fonts.googleapis.com")
         script(src = "https://unpkg.com/htmx.org@1.9.12") { defer = true }
         styleBlock()
@@ -83,7 +83,7 @@ private fun HTML.renderDemoPage(initialJson: String, initialSlug: String, exampl
             div("brand") {
                 span("dot") { +"●" }
                 strong { +"CH VACD" }
-                span("muted") { +"Pattern A — Platform Business Logic Layer (tracer bullet)" }
+                span("muted") { +"Platform Business Logic Example (harness smoke-test)" }
             }
             nav {
                 a(href = "/healthz") { +"healthz" }

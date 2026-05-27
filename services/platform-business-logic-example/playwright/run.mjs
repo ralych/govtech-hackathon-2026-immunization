@@ -10,7 +10,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(HERE, '../../../docs/demo/shots');
 if (!existsSync(OUT)) mkdirSync(OUT, { recursive: true });
 
-const BASE = process.env.BASE_URL || 'http://localhost:8080';
+const BASE = process.env.BASE_URL || 'http://localhost:8888';
 const EXAMPLES = [
   '01-immunization-administration-boostrix',
   '02-immunization-administration-comirnaty',

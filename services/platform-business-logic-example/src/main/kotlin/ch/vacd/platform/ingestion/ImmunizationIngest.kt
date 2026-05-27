@@ -37,19 +37,22 @@ class ImmunizationIngest(
     private val log = LoggerFactory.getLogger(javaClass)
 
     suspend fun ingest(input: JsonElement): IngestResult {
-        val peeled = BundleExtractor.peel(input)
+        // Normalize urn:uuid: bundles so every resource has a FHIR-legal id
+        // and all internal references use Type/id form.
+        val normalized = BundleNormalizer.normalize(input as JsonObject)
+        val peeled = BundleExtractor.peel(normalized)
         peeled.immunizations.forEach { validateStatus(it) }
 
-        val patientId = hapi.createResource("Patient", hapi.stripId(peeled.patient))
-        val practitionerIds = peeled.practitioners.map { hapi.createResource("Practitioner", hapi.stripId(it)) }
-        val organizationIds = peeled.organizations.map { hapi.createResource("Organization", hapi.stripId(it)) }
+        val bundle = ensureBundleProfile(normalized)
+        val bundleText = PrettyJson.encodeToString(JsonObject.serializer(), bundle)
+        val fhirResult = hapi.postBundle(bundleText)
+        log.info("FHIR server accepted Bundle, id={}", fhirResult["id"])
+
+        val patientId = extractId(peeled.patient)
+        val practitionerIds = peeled.practitioners.map { extractId(it) }
+        val organizationIds = peeled.organizations.map { extractId(it) }
 
         val ehrId = cdr.findOrCreateEhr(patientId)
-
-        // V2 FHIRconnect mapping starts at COMPOSITION level — send the full Bundle.
-        // openFHIR resolves urn:uuid references and navigates section→entry internally.
-        val bundle = ensureBundleProfile(input as JsonObject)
-        val bundleText = PrettyJson.encodeToString(JsonObject.serializer(), bundle)
 
         val flat = openFhir.toOpenEhr(bundleText, flat = true)
         val enriched = FeederAuditEnricher.addOriginal(flat, bundleText)
@@ -70,6 +73,11 @@ class ImmunizationIngest(
             enrichedFlat = enriched,
             originalFhirJson = bundleText,
         )
+    }
+
+    private fun extractId(resource: JsonObject): String {
+        val id = (resource["id"] as? JsonPrimitive)?.content
+        return id ?: java.util.UUID.randomUUID().toString()
     }
 
     private fun validateStatus(imm: JsonObject) {

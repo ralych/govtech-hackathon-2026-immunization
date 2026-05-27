@@ -162,7 +162,7 @@ private fun capabilityStatement(cfg: PlatformConfig): JsonObject = buildJsonObje
         put("version", "0.1.0")
     })
     put("implementation", buildJsonObject {
-        put("description", "Pattern A Platform Business Logic Example (tracer bullet)")
+        put("description", "CH VACD Platform Business Logic Example (harness smoke-test)")
     })
     put("fhirVersion", "4.0.1")
     put("format", buildJsonArray { add(JsonPrimitive("application/fhir+json")) })

@@ -26,7 +26,7 @@ class Examples(private val dir: Path) {
             stream
                 .filter { Files.isRegularFile(it) }
                 .filter { it.name.endsWith(".json") }
-                .filter { it.name.contains("immunization-administration") }
+                .filter { it.name.contains("immunizationadministration") }
                 .sorted()
                 .map { it.name.removeSuffix(".json") to readableLabel(it.name) }
                 .toList()
@@ -37,17 +37,12 @@ class Examples(private val dir: Path) {
         return if (p.exists()) Files.readString(p) else null
     }
 
-    private fun readableLabel(filename: String): String =
-        filename
-            .removeSuffix(".json")
-            .removePrefix("0").removePrefix("0").removePrefix("0")
-            // turn 1-immunization-administration-boostrix → "Immunization administration — boostrix"
-            .let { rest ->
-                rest.substringAfter("-")
-                    .replace("immunization-administration-", "Immunization administration — ")
-                    .replace("-", " ")
-            }
-            .replaceFirstChar { it.uppercase() }
+    private fun readableLabel(filename: String): String {
+        val stem = filename.removeSuffix(".json")
+        val uuid = stem.substringAfterLast("-")
+        val shortId = uuid.take(8)
+        return "CH VACD Immunization Administration ($shortId)"
+    }
 
     companion object {
         /**
