@@ -230,6 +230,22 @@ services:
       timeout: 5s
       retries: 12
 
+  # IAM Mock — simple authentication service for development.
+  # Provides 5 mock users (4 patient, 1 doctor) and issues JWTs.
+  iam-mock:
+    build:
+      context: ./services/iam-mock
+    image: vacd/iam-mock:dev
+    container_name: vacd-iam-mock
+    ports:
+      - "9090:8080"
+    healthcheck:
+      test: python -c "import http.client; c=http.client.HTTPConnection('localhost',8080); c.request('POST','/authenticate'); assert c.getresponse().status==401"
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 6
+
 # All backing services join `vacd-net`, an external user-defined bridge that
 # the dev container also joins (via `--network=vacd-net` in
 # .devcontainer/devcontainer.json runArgs, with `initializeCommand` creating

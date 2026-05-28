@@ -19,6 +19,6 @@ COPY --from=build /ch-vacd-api-server.jar /ch-vacd-api-server.jar
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 RUN mkdir -p /database /config
 
-ENTRYPOINT ["java", "-Xmx3072M", \
+ENTRYPOINT ["java", "-Xmx1024M", \
   "-Dspring.config.additional-location=optional:file:/config/application.yaml,optional:file:application.yaml", \
   "-jar", "/ch-vacd-api-server.jar"]
