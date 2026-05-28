@@ -1,0 +1,65 @@
+openapi: 3.0.3
+info:
+  title: Patienten API
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    PatientDto:
+      type: object
+      properties:
+        lastName:
+          type: string
+          example: "Brunner"
+          description: "Nachname des Patienten"
+        firstName:
+          type: string
+          example: "Noah"
+          description: "Vorname des Patienten"
+        birthDate:
+          type: string
+          format: date
+          example: "2018-12-03"
+          description: "Geburtsdatum im Format YYYY-MM-DD"
+        age:
+          type: integer
+          example: 7
+          description: "Alter des Patienten in Jahren"
+        gender:
+          type: string
+          enum: [männlich, weiblich, divers]
+          example: "männlich"
+          description: "Geschlecht des Patienten"
+        ahvNumber:
+          type: string
+          pattern: "^756\\.\\d{4}\\.\\d{4}\\.\\d{2}$"
+          example: "756.6789.0123.45"
+          description: "Schweizer AHV-Nummer im Format 756.XXXX.XXXX.XX"
+        address:
+          type: object
+          description: "Adresse des Patienten"
+          properties:
+            street:
+              type: string
+              example: "Hauptstrasse 45"
+            zipCode:
+              type: string
+              example: "8400"
+            city:
+              type: string
+              example: "Winterthur"
+        email:
+          type: string
+          format: email
+          example: "eltern.brunner@hotmail.com"
+          description: "E-Mail-Adresse (hier der Eltern)"
+        phoneNumber:
+          type: string
+          example: "+41 79 456 78 90"
+          description: "Telefonnummer im internationalen Format"
+      required:
+        - lastName
+        - firstName
+        - birthDate
+        - gender
+        - ahvNumber
