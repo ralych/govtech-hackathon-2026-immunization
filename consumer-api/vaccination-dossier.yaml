@@ -1,8 +1,27 @@
 openapi: 3.0.3
 info:
-  title: Impfkomponenten-Erfassung API
+  title: Impfungs API
   version: 1.0.0
-paths: {}
+paths:
+  /patients/{patientId}:
+    get:
+      summary: Ruft die Stammdaten und alle Impfungen eines spezifischen Patienten ab
+      description: Liefert die minimalen Stammdaten des Patienten sowie eine flache Liste aller verabreichten Impfungen.
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Die eindeutige ID des Patienten
+      responses:
+        '200':
+          description: Erfolgreiche Abfrage des Patientendossiers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientDossierDto'
 components:
   schemas:
     PatientDossierDto:
@@ -13,6 +32,7 @@ components:
           type: string
           format: uuid
           example: "a8b3c4d5-e6f7-8a9b-0c1d-2e3f4a5b6c7d"
+          description: Eindeutige ID des Patienten
         firstName:
           type: string
           example: "Anna"
@@ -40,7 +60,7 @@ components:
 
     VaccinationDto:
       type: object
-      description: Ein einzelner Impfeintrag
+      description: Repräsentiert einen einzelnen Impfeintrag
       properties:
         id:
           type: string
@@ -49,6 +69,7 @@ components:
         targetDisease:
           type: string
           example: "Influenza (saisonal)"
+          description: Die Zielkrankheit für die Gruppierung im Frontend
         vaccineName:
           type: string
           example: "Fluarix Tetra"
