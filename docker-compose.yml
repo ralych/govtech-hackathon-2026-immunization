@@ -287,6 +287,22 @@ services:
       start_period: 5s
       retries: 6
 
+  # Creator (Arzt Frontend)
+  creator-frontend:
+    build:
+      context: ./frontends/frontend-producer
+    container_name: vacd-creator-frontend
+    ports:
+      - "3002:80"
+
+  # Consumer (Patient Frontend)
+  consumer-frontend:
+    build:
+      context: ./frontends/frontend-creator
+    container_name: vacd-consumer-frontend
+    ports:
+      - "8081:80"
+
 # All backing services join `vacd-net`, an external user-defined bridge that
 # the dev container also joins (via `--network=vacd-net` in
 # .devcontainer/devcontainer.json runArgs, with `initializeCommand` creating
