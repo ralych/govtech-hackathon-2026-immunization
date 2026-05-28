@@ -226,7 +226,7 @@
           sessionStorage.setItem('auth', JSON.stringify(data));
 
           const target = REDIRECTS[data.role] || 'http://localhost:3003/login.html';
-          window.location.href = target;
+          window.location.replace(target);
         } catch (err) {
           showError('Verbindungsfehler – konnte den IAM-Service nicht erreichen.');
           setLoading(false);
