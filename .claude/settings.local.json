@@ -1,0 +1,7 @@
+{
+  "enabledMcpjsonServers": [
+    "playwright",
+    "context7",
+    "openEHR"
+  ]
+}

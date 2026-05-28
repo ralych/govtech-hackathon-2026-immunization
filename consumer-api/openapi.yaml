@@ -1,0 +1,256 @@
+openapi: 3.1.0
+info:
+  title: Impfdossier CH — Consumer (Patient) API
+  version: 0.1.0
+  summary: BFF contract for the patient-facing Impfdossier CH frontend.
+  description: |
+    Backend-for-frontend (BFF) contract for the **patient-facing** Impfdossier CH
+    app (`frontend-consumer`; the domain model is prototyped in
+    `frontend/frontend-creator`).
+
+    The frontend never speaks FHIR or openEHR directly. It speaks this small,
+    UI-shaped domain API. The mini-backend that implements this spec is the
+    **consumer** side of the challenge: it fetches a **CH VACD Vaccination Record
+    Document** through the team's platform layer (which reads from the openEHR
+    CDR) and projects it into the read-only domain model below.
+
+    The account holder ("self") can view their own record and those of family
+    members they are authorised to see (e.g. their children). The UI groups each
+    member's doses by target disease for display.
+
+    ### What this contract covers
+      * `GET /me` — the signed-in account holder, with their record.
+      * `GET /members` — the family members visible to the account, each with
+        their vaccination record embedded (drives the profile switcher).
+      * `GET /members/{memberId}` — a single member with their record.
+      * `GET /members/{memberId}/vaccinations` — just that member's doses
+        (handy for refetching after a pull-to-refresh).
+
+    ### Out of scope (deliberately)
+      * **Authentication.** No security scheme is defined; the mini-backend is
+        expected to resolve the account holder and their authorised members out
+        of band for the hackathon.
+      * **Writes.** This side is read-only — recording vaccinations is the
+        Creator (Doctor) API's job.
+      * **FHIR/openEHR shapes.** They live behind this API, not in it.
+
+# Intentionally unauthenticated for the hackathon: an empty top-level
+# `security` declares that no authentication is required. The mini-backend is
+# expected to resolve the account holder and authorised members out of band.
+security: []
+servers:
+  - url: http://localhost:8081/api/v1
+    description: >
+      Local mini-backend. 8081 is within the host-port range the dev container
+      reserves for participant services (3000-3001, 8000-8001, 8080-8081,
+      8888-8889). Placeholder — pick any reserved port for your backend.
+
+tags:
+  - name: Members
+    description: The account holder and the family members they can view.
+
+paths:
+  /me:
+    get:
+      operationId: getCurrentMember
+      tags: [Members]
+      summary: Get the signed-in account holder
+      description: >
+        Returns the account holder (relation `self`) together with their
+        vaccination record. Equivalent to looking up the `self` entry in
+        `GET /members`.
+      responses:
+        '200':
+          description: The account holder, with record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMember'
+
+  /members:
+    get:
+      operationId: listMembers
+      tags: [Members]
+      summary: List viewable family members
+      description: |
+        Returns every person the account may view — the account holder plus any
+        authorised family members — each with their full vaccination record
+        embedded. The app loads this once and switches between members locally,
+        matching the prototype's data shape.
+
+        Members are returned with `self` first; remaining members follow in a
+        stable order.
+      responses:
+        '200':
+          description: The viewable family members, each with their record.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FamilyMember'
+
+  /members/{memberId}:
+    parameters:
+      - $ref: '#/components/parameters/MemberId'
+    get:
+      operationId: getMember
+      tags: [Members]
+      summary: Get one family member
+      description: A single member with their full vaccination record.
+      responses:
+        '200':
+          description: The member, with record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMember'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /members/{memberId}/vaccinations:
+    parameters:
+      - $ref: '#/components/parameters/MemberId'
+    get:
+      operationId: listMemberVaccinations
+      tags: [Members]
+      summary: List a member's vaccinations
+      description: >
+        Flat list of the member's recorded doses. The UI groups them by target
+        disease (oldest dose first within each group, groups ordered by most
+        recent dose); the backend need not pre-group.
+      responses:
+        '200':
+          description: The member's vaccination record.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Vaccination'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  parameters:
+    MemberId:
+      name: memberId
+      in: path
+      required: true
+      description: Family-member id, e.g. `M-self` or `M-son`.
+      schema:
+        type: string
+      example: M-self
+
+  responses:
+    NotFound:
+      description: The referenced member does not exist or is not viewable by this account.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Sex:
+      type: string
+      description: Administrative sex.
+      enum: [M, F]
+
+    Relation:
+      type: string
+      description: Relationship of the member to the account holder; drives the switcher label.
+      enum: [self, son, daughter]
+
+    Route:
+      type: string
+      description: Route of administration.
+      enum: [i.m., s.c., i.d., oral, nasal]
+
+    FamilyMember:
+      type: object
+      description: A person whose vaccination record the account can view.
+      required: [id, firstName, lastName, dob, sex, relation, vaccinations]
+      properties:
+        id:
+          type: string
+          example: M-self
+        firstName:
+          type: string
+          example: Anna
+        lastName:
+          type: string
+          example: Schmid
+        dob:
+          type: string
+          format: date
+          description: Date of birth (ISO 8601, yyyy-mm-dd).
+          example: '1985-03-12'
+        sex:
+          $ref: '#/components/schemas/Sex'
+        relation:
+          $ref: '#/components/schemas/Relation'
+        vaccinations:
+          type: array
+          description: The member's recorded doses (unsorted; the UI groups by disease).
+          items:
+            $ref: '#/components/schemas/Vaccination'
+
+    Vaccination:
+      type: object
+      description: |
+        A single administered dose, read-only, in the UI's domain shape. Mirrors
+        the Swiss Impfausweis / FHIR Immunization. This is a projection of one
+        entry from the CH VACD Vaccination Record Document.
+      required: [id, disease, vaccine, date, dose, manufacturer, batch, route, site]
+      properties:
+        id:
+          type: string
+          example: a1
+        disease:
+          type: string
+          description: Target disease(s); used to group entries in the UI.
+          example: Diphtherie, Tetanus, Pertussis
+        vaccine:
+          type: string
+          description: Trade name of the administered product.
+          example: Boostrix
+        date:
+          type: string
+          format: date
+          description: Date the dose was given (yyyy-mm-dd).
+          example: '2015-11-04'
+        dose:
+          type: string
+          description: Dose label within a series, e.g. "1/3", "Booster" or "Saison 25/26".
+          example: Booster
+        manufacturer:
+          type: string
+          example: GlaxoSmithKline
+        batch:
+          type: string
+          description: Lot / batch number.
+          example: DT9923
+        route:
+          $ref: '#/components/schemas/Route'
+        site:
+          type: string
+          description: Anatomical site of administration.
+          example: Oberarm links
+        note:
+          type: string
+          description: Free-text note, if any.
+          example: Empfehlung Säuglinge
+
+    Error:
+      type: object
+      description: A problem response.
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Stable, machine-readable error code.
+          example: not_found
+        message:
+          type: string
+          description: Human-readable explanation.
+          example: No viewable member with id 'M-x'.
