@@ -1,9 +1,32 @@
 // Screen 2 — Patient vaccination history (Swiss Impfausweis style)
 
-function PatientDetail({ patientId, onBack, onAddVaccination, justAdded }) {
-  const { patients, vaccinations } = window.AppData;
-  const patient = patients.find((p) => p.id === patientId);
-  const records = vaccinations[patientId] || [];
+function PatientDetail({ patientId, onBack, onAddVaccination, justAdded, onVaccinationCreated }) {
+  const { patients } = window.AppData;
+  const patient = (patients || []).find((p) => p.id === patientId);
+  const [records, setRecords] = useState([]);
+  const [vaxLoading, setVaxLoading] = useState(true);
+
+  useEffect(() => {
+    setVaxLoading(true);
+    DataService.fetchImmunizations(patientId)
+      .then((apiImms) => {
+        setRecords(apiImms.map((r) => DataService.transformImmunization(r)));
+        setVaxLoading(false);
+      })
+      .catch((err) => {
+        console.warn('Immunisierungs-API nicht erreichbar:', err);
+        const fallback = (window.AppData.vaccinations || {})[patientId] || [];
+        setRecords(fallback);
+        setVaxLoading(false);
+      });
+  }, [patientId]);
+
+  // Wenn eine neue Impfung via onVaccinationCreated hinzugefügt wurde, in records einfügen
+  useEffect(() => {
+    if (justAdded && justAdded._addedId && !records.find((r) => r.id === justAdded._addedId)) {
+      setRecords((prev) => [...prev, justAdded]);
+    }
+  }, [justAdded]);
 
   if (!patient) return <div className="page">Patient:in nicht gefunden.</div>;
 
@@ -14,9 +37,7 @@ function PatientDetail({ patientId, onBack, onAddVaccination, justAdded }) {
       if (!map.has(r.disease)) map.set(r.disease, []);
       map.get(r.disease).push(r);
     }
-    // Sort each group ascending by date
     for (const arr of map.values()) arr.sort((a, b) => a.date.localeCompare(b.date));
-    // Group order: most recent activity first
     const groupArr = [...map.entries()].map(([disease, items]) => ({
       disease,
       items,
@@ -35,12 +56,11 @@ function PatientDetail({ patientId, onBack, onAddVaccination, justAdded }) {
 
   return (
     <main className="page">
-      {/* Back link */}
       <button className="back-link" onClick={onBack}>
         <Icon.Back /> Zurück zur Patient:innenliste
       </button>
 
-      {justAdded &&
+      {justAdded && justAdded._addedId &&
       <div className="toast-success">
           <div className="toast-icon"><Icon.Check /></div>
           <div>
@@ -52,7 +72,6 @@ function PatientDetail({ patientId, onBack, onAddVaccination, justAdded }) {
         </div>
       }
 
-      {/* Patient hero */}
       <section className="patient-hero">
         <div className="patient-hero-left">
           <PatientAvatar patient={patient} size={64} />
@@ -78,7 +97,6 @@ function PatientDetail({ patientId, onBack, onAddVaccination, justAdded }) {
         </div>
       </section>
 
-      {/* Action bar */}
       <div className="detail-actions">
         <div className="detail-actions-title">
           <h2 className="section-title">Impfausweis</h2>
@@ -88,17 +106,24 @@ function PatientDetail({ patientId, onBack, onAddVaccination, justAdded }) {
         </div>
       </div>
 
-      {/* Vaccination groups */}
+      {vaxLoading &&
+      <div className="card" style={{ padding: 32, textAlign: 'center', color: 'var(--text-3)' }}>
+          Impfungen werden geladen …
+        </div>
+      }
+
+      {!vaxLoading &&
       <div className="vax-groups">
-        {groups.map((g) =>
-        <VaccinationGroup key={g.disease} group={g} justAddedId={justAdded?._addedId} />
-        )}
-        {groups.length === 0 &&
-        <div className="card" style={{ padding: 32, textAlign: "center", color: "var(--text-3)" }}>
-            Noch keine Impfungen erfasst. Klicke auf „Neue Impfung erfassen".
-          </div>
-        }
-      </div>
+          {groups.map((g) =>
+          <VaccinationGroup key={g.disease} group={g} justAddedId={justAdded?._addedId} />
+          )}
+          {groups.length === 0 &&
+          <div className="card" style={{ padding: 32, textAlign: 'center', color: 'var(--text-3)' }}>
+              Noch keine Impfungen erfasst. Klicke auf „Neue Impfung erfassen".
+            </div>
+          }
+        </div>
+      }
     </main>);
 
 }
@@ -146,8 +171,8 @@ function VaccinationGroup({ group, justAddedId }) {
                 </div>
               </div>
               <div className="vax-entry-side">
-                <div className="vax-entry-doc">Dr. S. Müller</div>
-                <div className="vax-entry-gln mono">GLN 7601…3456</div>
+                <div className="vax-entry-doc">{r.practitioner?.doctorName || 'Dr. S. Müller'}</div>
+                <div className="vax-entry-gln mono">{r.practitioner ? 'GLN ' + r.practitioner.gln?.slice(0, 4) + '…' + r.practitioner.gln?.slice(-4) : 'GLN 7601…3456'}</div>
               </div>
             </div>
           </li>

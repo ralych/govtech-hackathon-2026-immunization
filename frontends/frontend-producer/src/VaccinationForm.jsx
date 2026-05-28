@@ -1,6 +1,6 @@
 // Screen 3 — New vaccination form (modal-style sheet)
 
-function VaccinationForm({ patient, onCancel, onSubmit }) {
+function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
   const { vaccineCatalog, manufacturers, routes, sites, reasons } = window.AppData;
   const today = new Date().toISOString().slice(0, 10);
 
@@ -23,6 +23,7 @@ function VaccinationForm({ patient, onCancel, onSubmit }) {
   });
 
   const [touched, setTouched] = useState({});
+  const [submitting, setSubmitting] = useState(false);
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
   const touch = (k) => setTouched((prev) => ({ ...prev, [k]: true }));
 
@@ -35,36 +36,48 @@ function VaccinationForm({ patient, onCancel, onSubmit }) {
 
   const isValid = Object.keys(errors).length === 0;
 
-  const submit = () => {
+  const submit = async () => {
     if (!isValid) {
       setTouched({ vaccine: 1, date: 1, manufacturer: 1, batch: 1, amount: 1 });
       return;
     }
-    const record = {
-      id: "V" + Math.random().toString(36).slice(2, 7).toUpperCase(),
-      disease: inferDiseaseFromVaccine(form.vaccine),
-      vaccine: form.vaccine,
-      date: form.date,
-      manufacturer: form.manufacturer,
-      batch: form.batch,
-      route: form.route,
-      site: form.site,
-      dose: form.doseNumber && form.doseTotal ?
-      `${form.doseNumber}/${form.doseTotal}` :
-      form.doseNumber || "—",
-      reason: form.reason,
-      amount: `${form.amount} ${form.unit}`,
-      expiry: form.expiry,
-      organization: form.organization,
-      adverse: form.hasAdverse ? form.adverseText : null
-    };
-    onSubmit(record);
+
+    setSubmitting(true);
+    try {
+      const doseNum = parseInt(form.doseNumber, 10) || 1;
+      const seriesDoses = form.doseTotal ? parseInt(form.doseTotal, 10) : null;
+      const amountVal = parseFloat(form.amount) || 0;
+
+      const payload = {
+        vaccineName: form.vaccine,
+        marketingAuthorizationHolder: form.manufacturer,
+        lotNumber: form.batch,
+        expiryDate: form.expiry || null,
+        vaccinationDate: form.date,
+        routeOfAdministration: DataService.routeToApi(form.route),
+        administeredDose: { value: amountVal, unit: form.unit },
+        siteOfAdministration: form.site,
+        reason: form.reason,
+        doseNumber: doseNum,
+        seriesDoses: seriesDoses,
+        adverseReactionObserved: form.hasAdverse,
+      };
+
+      const created = await DataService.createImmunization(patient.id, payload);
+      const record = DataService.transformImmunization(created);
+      record.note = form.hasAdverse ? 'UAW: ' + form.adverseText : null;
+      onVaccinationCreated(record);
+    } catch (err) {
+      console.error('Fehler beim Speichern der Impfung:', err);
+      alert('Fehler beim Speichern der Impfung: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="sheet-backdrop" onClick={onCancel}>
       <aside className="sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Neue Impfung erfassen">
-        {/* Sheet header */}
         <header className="sheet-head">
           <div>
             <div className="sheet-eyebrow">Neue Impfung</div>
@@ -79,9 +92,7 @@ function VaccinationForm({ patient, onCancel, onSubmit }) {
           </button>
         </header>
 
-        {/* Body */}
         <div className="sheet-body">
-          {/* Group 1 — Vaccine */}
           <FormGroup title="Impfstoff" eyebrow="1">
             <div className="grid-2">
               <Field label="Impfstoff" required error={touched.vaccine && errors.vaccine}>
@@ -120,7 +131,6 @@ function VaccinationForm({ patient, onCancel, onSubmit }) {
             </div>
           </FormGroup>
 
-          {/* Group 2 — Administration */}
           <FormGroup title="Verabreichung" eyebrow="2">
             <div className="grid-2">
               <Field label="Impfdatum" required error={touched.date && errors.date}>
@@ -163,7 +173,6 @@ function VaccinationForm({ patient, onCancel, onSubmit }) {
             </div>
           </FormGroup>
 
-          {/* Group 3 — Clinical context */}
           <FormGroup title="Klinischer Kontext" eyebrow="3">
             <div className="grid-2">
               <Field label="Impfgrund" required>
@@ -180,7 +189,7 @@ function VaccinationForm({ patient, onCancel, onSubmit }) {
                   <input className="input tnum" placeholder="3" value={form.doseTotal}
                   onChange={(e) => set("doseTotal", e.target.value.replace(/[^\d]/g, ""))} />
                   <span className="field-hint" style={{ marginLeft: 8 }}>
-                    {form.doseNumber && form.doseTotal ? `Dosis ${form.doseNumber} von ${form.doseTotal}` : "Booster? Leer lassen."}
+                    {form.doseNumber && form.doseTotal ? "Dosis " + form.doseNumber + " von " + form.doseTotal : "Booster? Leer lassen."}
                   </span>
                 </div>
               </Field>
@@ -208,17 +217,15 @@ function VaccinationForm({ patient, onCancel, onSubmit }) {
             </Field>
           </FormGroup>
 
-          {/* Audit trail preview */}
           <div className="audit-trail">
             <div className="audit-icon"><Icon.Info /></div>
             <div className="audit-text">
-              Dieser Eintrag wird signiert mit <b>{window.AppData.doctor.name}</b> · GLN <span className="mono">{window.AppData.doctor.gln}</span>
+              Dieser Eintrag wird signiert mit <b>{window.AppData.doctor?.name || 'Dr. med. Sarah Müller'}</b> · GLN <span className="mono">{window.AppData.doctor?.gln || '7601000123456'}</span>
               <br />Zeitstempel: <span className="tnum">{new Date().toLocaleString("de-CH")}</span>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
         <footer className="sheet-foot">
           <div className="foot-left">
             {!isValid && Object.keys(touched).length > 0 &&
@@ -226,12 +233,12 @@ function VaccinationForm({ patient, onCancel, onSubmit }) {
             }
           </div>
           <div className="foot-right">
-            <button className="btn" onClick={onCancel}>Abbrechen</button>
-            <button className="btn" onClick={submit} disabled={!isValid} style={isValid ? null : { opacity: 0.5 }}>
-              Speichern &amp; weiter erfassen
+            <button className="btn" onClick={onCancel} disabled={submitting}>Abbrechen</button>
+            <button className="btn" onClick={submit} disabled={!isValid || submitting} style={(!isValid || submitting) ? { opacity: 0.5 } : null}>
+              {submitting ? 'Speichert …' : 'Speichern &amp; weiter erfassen'}
             </button>
-            <button className="btn btn-primary" onClick={submit} disabled={!isValid} style={isValid ? null : { opacity: 0.5 }}>
-              <Icon.Check /> Impfung speichern
+            <button className="btn btn-primary" onClick={submit} disabled={!isValid || submitting} style={(!isValid || submitting) ? { opacity: 0.5 } : null}>
+              <Icon.Check /> {submitting ? 'Speichert …' : 'Impfung speichern'}
             </button>
           </div>
         </footer>
@@ -269,26 +276,7 @@ function Field({ label, required, hint, error, children, style }) {
 }
 
 function inferDiseaseFromVaccine(vaccine) {
-  const v = vaccine.toLowerCase();
-  if (v.includes("boostrix polio") || v.includes("infanrix-ipv") || v.includes("pentavac")) return "Diphtherie, Tetanus, Pertussis, Polio";
-  if (v.includes("infanrix hexa")) return "Diphtherie, Tetanus, Pertussis, Polio, Hib, Hepatitis B";
-  if (v.includes("boostrix")) return "Diphtherie, Tetanus, Pertussis";
-  if (v.includes("td-pur")) return "Diphtherie, Tetanus";
-  if (v.includes("priorix") || v.includes("mmr")) return "Masern, Mumps, Röteln";
-  if (v.includes("gardasil")) return "HPV";
-  if (v.includes("fsme") || v.includes("encepur")) return "FSME";
-  if (v.includes("engerix")) return "Hepatitis B";
-  if (v.includes("havrix")) return "Hepatitis A";
-  if (v.includes("twinrix")) return "Hepatitis A + B";
-  if (v.includes("comirnaty") || v.includes("spikevax") || v.includes("covid")) return "COVID-19";
-  if (v.includes("influvac") || v.includes("fluarix") || v.includes("efluelda")) return "Influenza (saisonal)";
-  if (v.includes("prevenar") || v.includes("pneumo")) return "Pneumokokken";
-  if (v.includes("menveo") || v.includes("nimenrix")) return "Meningokokken ACWY";
-  if (v.includes("rabipur")) return "Tollwut";
-  if (v.includes("stamaril")) return "Gelbfieber";
-  if (v.includes("shingrix")) return "Herpes Zoster";
-  if (v.includes("varilrix")) return "Varizellen";
-  return "Sonstige";
+  return DataService.inferDisease(vaccine);
 }
 
 window.VaccinationForm = VaccinationForm;

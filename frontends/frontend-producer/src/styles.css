@@ -352,3 +352,6 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 /* Tabular numerals for IDs, dates, doses */
 .mono, .tabular { font-family: var(--font-mono); font-feature-settings: "tnum"; }
 .tnum { font-variant-numeric: tabular-nums; }
+
+/* Loading spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
