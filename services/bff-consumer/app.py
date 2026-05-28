@@ -28,6 +28,8 @@ async def healthz() -> dict[str, Any]:
 
 @app.get("/patients/{patient_id}/vaccinations")
 async def list_vaccinations(patient_id: str) -> dict[str, Any]:
+    patient_created = await _ensure_patient(patient_id)
+
     r = await fhir.get(
         f"{FHIR_BASE}/Immunization",
         params={"patient": patient_id, "_count": "200"},
@@ -41,9 +43,40 @@ async def list_vaccinations(patient_id: str) -> dict[str, Any]:
     entries = bundle.get("entry") or []
     return {
         "patientId": patient_id,
+        "patientCreated": patient_created,
         "count": len(entries),
         "vaccinations": [_to_view(e["resource"]) for e in entries],
     }
+
+
+async def _ensure_patient(patient_id: str) -> bool:
+    """Return True if the patient had to be created, False if it already existed."""
+    # The CH VACD reference PatientProvider returns a synthetic stub for any
+    # GET /Patient/{id} (never 404), so we check via Search which only yields
+    # actually-stored Patients.
+    r = await fhir.get(f"{FHIR_BASE}/Patient", params={"_count": "1000"})
+    if r.status_code != 200:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Patient search failed ({r.status_code}): {r.text[:200]}",
+        )
+    stored_ids = {
+        (e.get("resource") or {}).get("id")
+        for e in (r.json().get("entry") or [])
+    }
+    if patient_id in stored_ids:
+        return False
+    create = await fhir.put(
+        f"{FHIR_BASE}/Patient/{patient_id}",
+        json={"resourceType": "Patient", "id": patient_id},
+        headers={"Content-Type": "application/fhir+json"},
+    )
+    if create.status_code not in (200, 201):
+        raise HTTPException(
+            status_code=502,
+            detail=f"Patient create failed ({create.status_code}): {create.text[:200]}",
+        )
+    return True
 
 
 def _to_view(imm: dict[str, Any]) -> dict[str, Any]:
