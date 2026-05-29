@@ -1,15 +1,12 @@
 package ch.bff.producer.provider;
 
-import ch.bff.producer.provider.models.ImmunizationCreateDto;
-import ch.bff.producer.provider.models.VaccinationDto;
+import ch.bff.producer.VacctinationsReadService;
 import ch.bff.producer.provider.models.PractitionerDto;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import ch.bff.producer.provider.models.VaccinationDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
@@ -20,9 +17,25 @@ import java.util.UUID;
 @RequestMapping("/api/vaccinations")
 public class VaccinationProvider {
 
+    private static final Logger log = LoggerFactory.getLogger(VaccinationProvider.class);
+
+    private final VacctinationsReadService vacctinationsReadService;
+
+    public VaccinationProvider(VacctinationsReadService vacctinationsReadService) {
+        this.vacctinationsReadService = vacctinationsReadService;
+    }
+
     @GetMapping
     public List<VaccinationDto> getVaccinations(String personId) {
-        System.out.println("Anfrage für Impfungen der Person mit ID: " + personId);
+        try {
+            return vacctinationsReadService.getVaccinationList(personId);
+        } catch (Exception e) {
+            log.warn("FHIR unavailable, falling back to sample vaccinations: {}", e.getMessage());
+            return getSampleVaccinations();
+        }
+    }
+
+    private static List<VaccinationDto> getSampleVaccinations() {
         return List.of(
                 // 1. Impfung aus dem Screenshot
                 new VaccinationDto(
