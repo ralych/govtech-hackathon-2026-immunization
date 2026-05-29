@@ -39,7 +39,8 @@ public class ImmunizationProvider {
                 createDto.lotNumber(),
                 createDto.routeOfAdministration().toString().toLowerCase(),
                 createDto.siteOfAdministration(),
-                new PractitionerDto("Dr. med. Sarah Müller", "7601000123456") // Aus dem Signatur-Feld des Formulars
+                new PractitionerDto("Dr. med. Sarah Müller", "7601000123456"), // Aus dem Signatur-Feld des Formulars
+                createDto.reason()
         );
 
         // Gebe HTTP 201 Created und das gespeicherte Objekt zurück

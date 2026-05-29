@@ -1,61 +1,87 @@
 openapi: 3.0.3
 info:
-  title: Impfungs API
+  title: Impfkomponenten-Erfassung API
   version: 1.0.0
 paths: {}
 components:
   schemas:
+    PatientDossierDto:
+      type: object
+      description: Das vollständige Dossier eines Patienten einschliesslich seiner Impfungen
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "a8b3c4d5-e6f7-8a9b-0c1d-2e3f4a5b6c7d"
+        firstName:
+          type: string
+          example: "Anna"
+        lastName:
+          type: string
+          example: "Schmid"
+        age:
+          type: integer
+          example: 41
+        gender:
+          type: string
+          example: "weiblich"
+        vaccinations:
+          type: array
+          items:
+            $ref: '#/components/schemas/VaccinationDto'
+          description: Flache Liste aller Impfungen dieses Patienten
+      required:
+        - id
+        - firstName
+        - lastName
+        - age
+        - gender
+        - vaccinations
+
     VaccinationDto:
       type: object
-      description: "Repräsentiert den Lese-Zustand (Read) eines Impfeintrags"
+      description: Ein einzelner Impfeintrag
       properties:
         id:
           type: string
           format: uuid
           example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
-          description: "Eindeutige ID des Impfeintrags (UUID)"
+        targetDisease:
+          type: string
+          example: "Influenza (saisonal)"
         vaccineName:
           type: string
-          example: "Priorix"
-          description: "Handelsname des Impfstoffes"
+          example: "Fluarix Tetra"
+        season:
+          type: string
+          example: "Saison 25/26"
         doseSequence:
           type: string
           example: "1/2"
-          description: "Aktuelle Dosis im Verhältnis zur empfohlenen Gesamtzahl der Impfdosen"
         vaccinationDate:
           type: string
           format: date
-          example: "2020-01-22"
-          description: "Datum der Impfung im Format YYYY-MM-DD"
+          example: "2025-10-14"
         manufacturer:
           type: string
           example: "GlaxoSmithKline"
-          description: "Hersteller des Impfstoffes"
         lotNumber:
           type: string
-          example: "PR2001"
-          description: "Chargennummer (Lot-Nummer) des verabreichten Impfstoffes"
+          example: "FLU2425"
         administrationRoute:
           type: string
-          example: "s.c."
-          description: "Verabreichungsart / Applikationsweg (z.B. s.c. für subkutan, i.m. für intramuskulär)"
+          example: "i.m."
         siteOfAdministration:
           type: string
           example: "Oberarm links"
-          description: "Injektionsort / Lokalisation am Körper"
-        practitioner:
-          type: object
-          description: "Angaben zur Person, welche die Impfung durchgeführt bzw. validiert hat"
-          properties:
-            doctorName:
-              type: string
-              example: "Dr. S. Müller"
-              description: "Name der Ärztin oder des Arztes"
-            gln:
-              type: string
-              pattern: "^7601\\d{9}$"
-              example: "7601000233456"
-              description: "Globale Lokationsnummer (GLN) der medizinischen Fachperson in der Schweiz (13-stellig)"
+        doseNumber:
+          type: string
+          example: "1"
+          description: Die aktuelle Dosisnummer in der Impfserie (z. B. "1", "2"). Bei einer Booster-Impfung kann dieses Feld leer gelassen werden oder "Booster" enthalten.
+        seriesDoses:
+          type: string
+          example: "2"
+          description: Die Gesamtzahl der vorgesehenen Dosen in der Impfserie (z. B. "2", "3"). Bei einer Booster-Impfung kann dieses Feld leer gelassen werden.
         vaccinationReason:
           type: object
           description: Der Grund für die Impfung basierend auf dem Schweizer Risks ValueSet (http://fhir.ch/ig/ch-vacd/ValueSet/ch-vacd-risks-vs)
@@ -77,9 +103,8 @@ components:
             - display
       required:
         - id
+        - targetDisease
         - vaccineName
-        - doseSequence
         - vaccinationDate
         - manufacturer
         - lotNumber
-        - practitioner

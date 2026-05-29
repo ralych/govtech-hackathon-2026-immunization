@@ -34,7 +34,8 @@ public class VaccinationProvider {
                         "PR2001",
                         "s.c.",
                         "Oberarm links",
-                        new PractitionerDto("Dr. S. Müller", "7601000233456")
+                        new PractitionerDto("Dr. S. Müller", "7601000233456"),
+                        "Grundimmunisierung"
                 ),
 
                 // 2. Impfung (Folgeimpfung MMR)
@@ -47,7 +48,8 @@ public class VaccinationProvider {
                         "PR2005",
                         "s.c.",
                         "Oberarm rechts",
-                        new PractitionerDto("Dr. S. Müller", "7601000233456")
+                        new PractitionerDto("Dr. S. Müller", "7601000233456"),
+                        "Auffrischimpfung"
                 ),
 
                 // 3. Impfung (Starrkrampf / DTP)
@@ -60,7 +62,8 @@ public class VaccinationProvider {
                         "BS9942",
                         "i.m.",
                         "Oberschenkel links",
-                        new PractitionerDto("Dr. med. A. Pfister", "7601003445566")
+                        new PractitionerDto("Dr. med. A. Pfister", "7601003445566"),
+                        "Auffrischimpfung"
                 ),
 
                 // 4. Impfung (FSME / Zecken)
@@ -73,7 +76,8 @@ public class VaccinationProvider {
                         "VNR402A",
                         "i.m.",
                         "Oberarm links",
-                        new PractitionerDto("Dr. S. Müller", "7601000233456")
+                        new PractitionerDto("Dr. S. Müller", "7601000233456"),
+                        "Grundimmunisierung"
                 ),
 
                 // 5. Impfung (Grippe)
@@ -86,7 +90,8 @@ public class VaccinationProvider {
                         "FL2025X",
                         "i.m.",
                         "Oberarm rechts",
-                        new PractitionerDto("Apotheke am Bahnhof", "7601009998877")
+                        new PractitionerDto("Apotheke am Bahnhof", "7601009998877"),
+                        "saisonale Influenza"
                 )
         );
     }

@@ -1,0 +1,85 @@
+openapi: 3.0.3
+info:
+  title: Impfungs API
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    VaccinationDto:
+      type: object
+      description: "Repräsentiert den Lese-Zustand (Read) eines Impfeintrags"
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          description: "Eindeutige ID des Impfeintrags (UUID)"
+        vaccineName:
+          type: string
+          example: "Priorix"
+          description: "Handelsname des Impfstoffes"
+        doseSequence:
+          type: string
+          example: "1/2"
+          description: "Aktuelle Dosis im Verhältnis zur empfohlenen Gesamtzahl der Impfdosen"
+        vaccinationDate:
+          type: string
+          format: date
+          example: "2020-01-22"
+          description: "Datum der Impfung im Format YYYY-MM-DD"
+        manufacturer:
+          type: string
+          example: "GlaxoSmithKline"
+          description: "Hersteller des Impfstoffes"
+        lotNumber:
+          type: string
+          example: "PR2001"
+          description: "Chargennummer (Lot-Nummer) des verabreichten Impfstoffes"
+        administrationRoute:
+          type: string
+          example: "s.c."
+          description: "Verabreichungsart / Applikationsweg (z.B. s.c. für subkutan, i.m. für intramuskulär)"
+        siteOfAdministration:
+          type: string
+          example: "Oberarm links"
+          description: "Injektionsort / Lokalisation am Körper"
+        practitioner:
+          type: object
+          description: "Angaben zur Person, welche die Impfung durchgeführt bzw. validiert hat"
+          properties:
+            doctorName:
+              type: string
+              example: "Dr. S. Müller"
+              description: "Name der Ärztin oder des Arztes"
+            gln:
+              type: string
+              pattern: "^7601\\d{9}$"
+              example: "7601000233456"
+              description: "Globale Lokationsnummer (GLN) der medizinischen Fachperson in der Schweiz (13-stellig)"
+        vaccinationReason:
+          type: object
+          description: Der Grund für die Impfung basierend auf dem Schweizer Risks ValueSet (http://fhir.ch/ig/ch-vacd/ValueSet/ch-vacd-risks-vs)
+          properties:
+            code:
+              type: string
+              example: "223366009"
+              description: Der offizielle SNOMED CT-Code oder Schweizer Risikocode (z. B. "223366009" für berufliche Risikogruppe)
+            display:
+              type: string
+              example: "Healthcare professional"
+              description: Der offizielle Display-Name des Codes
+            swissLabel:
+              type: string
+              example: "Risikogruppe — beruflich"
+              description: Die praxisnahe Bezeichnung auf Deutsch für die Schweizer Benutzeroberfläche
+          required:
+            - code
+            - display
+      required:
+        - id
+        - vaccineName
+        - doseSequence
+        - vaccinationDate
+        - manufacturer
+        - lotNumber
+        - practitioner

@@ -12,7 +12,8 @@ public record VaccinationDto(
         String lotNumber,
         String administrationRoute,
         String siteOfAdministration,
-        PractitionerDto practitioner
+        PractitionerDto practitioner,
+        String reason
 ) {
     // Kompakter Konstruktor für Pflichtfeld- und Formatvalidierungen
     public VaccinationDto {

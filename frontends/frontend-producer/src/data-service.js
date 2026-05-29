@@ -82,7 +82,7 @@ function transformVaccination(apiImm) {
     route: apiImm.administrationRoute || '',
     site: apiImm.siteOfAdministration || '',
     practitioner: apiImm.practitioner || null,
-    vaccinationReason: apiImm.vaccinationReason || staticReasons[apiImm.id] || null,
+    vaccinationReason: apiImm.reason || apiImm.vaccinationReason || staticReasons[apiImm.id] || null,
   };
 }
 
