@@ -234,7 +234,7 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
           <div className="foot-right">
             <button className="btn" onClick={onCancel} disabled={submitting}>Abbrechen</button>
             <button className="btn" onClick={submit} disabled={!isValid || submitting} style={(!isValid || submitting) ? { opacity: 0.5 } : null}>
-              {submitting ? 'Speichert …' : 'Speichern &amp; weiter erfassen'}
+              {submitting ? 'Speichert …' : 'Speichern & weiter erfassen'}
             </button>
             <button className="btn btn-primary" onClick={submit} disabled={!isValid || submitting} style={(!isValid || submitting) ? { opacity: 0.5 } : null}>
               <Icon.Check /> {submitting ? 'Speichert …' : 'Impfung speichern'}
