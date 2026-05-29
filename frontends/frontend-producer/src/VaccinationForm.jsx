@@ -69,7 +69,7 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
       };
 
       const created = await DataService.createImmunization(patient.id, payload);
-      const record = DataService.transformImmunization(created);
+      const record = DataService.transformVaccination(created);
       record.note = form.hasAdverse ? 'UAW: ' + form.adverseText : null;
       onVaccinationCreated(record);
     } catch (err) {

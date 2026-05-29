@@ -6,11 +6,11 @@ function PatientDetail({ patientId, onBack, onAddVaccination, justAdded, onVacci
   const [records, setRecords] = useState([]);
   const [vaxLoading, setVaxLoading] = useState(true);
 
-  const loadImmunizations = () => {
+  const loadVaccinations = () => {
     setVaxLoading(true);
-    DataService.fetchImmunizations(patientId)
+    DataService.fetchVaccinations(patientId)
       .then((apiImms) => {
-        setRecords(apiImms.map((r) => DataService.transformImmunization(r)));
+        setRecords(apiImms.map((r) => DataService.transformVaccination(r)));
         setVaxLoading(false);
       })
       .catch((err) => {
@@ -22,13 +22,13 @@ function PatientDetail({ patientId, onBack, onAddVaccination, justAdded, onVacci
   };
 
   useEffect(() => {
-    loadImmunizations();
+    loadVaccinations();
   }, [patientId]);
 
   // Wenn eine neue Impfung via onVaccinationCreated hinzugefügt wurde, die Liste neu laden
   useEffect(() => {
     if (justAdded && justAdded.id) {
-      loadImmunizations();
+      loadVaccinations();
     }
   }, [justAdded]);
 

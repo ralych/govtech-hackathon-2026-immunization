@@ -22,8 +22,8 @@ async function fetchPatients() {
   return res.json();
 }
 
-async function fetchImmunizations(personId) {
-  const res = await fetch('/api/bff-producer/immunizations?personId=' + encodeURIComponent(personId), {
+async function fetchVaccinations(personId) {
+  const res = await fetch('/api/bff-producer/vaccinations?personId=' + encodeURIComponent(personId), {
     headers: { ...authHeaders() },
   });
   if (!res.ok) throw new Error('Fehler beim Laden der Impfungen');
@@ -60,7 +60,7 @@ function transformPatient(apiPatient, index) {
   };
 }
 
-function transformImmunization(apiImm) {
+function transformVaccination(apiImm) {
   const staticReasons = {
     "3fa85f64-5717-4562-b3fc-2c963f66afa6": { code: "373068000", display: "Not known", swissLabel: "Grundimmunisierung" },
     "7b921e12-3456-7890-abcd-ef1234567890": { code: "373068000", display: "Not known", swissLabel: "Grundimmunisierung" },
@@ -124,10 +124,10 @@ function loadMockFallback() {
 window.DataService = {
   getAuth,
   fetchPatients,
-  fetchImmunizations,
+  fetchVaccinations,
   createImmunization,
   transformPatient,
-  transformImmunization,
+  transformVaccination,
   routeToApi,
   inferDisease,
   loadMockFallback,

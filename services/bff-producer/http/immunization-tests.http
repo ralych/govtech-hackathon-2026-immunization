@@ -1,11 +1,7 @@
-### Hole die Liste aller Impfungen
-GET http://localhost:9112/bff-producer-server/api/immunizations?personId=3fa85f64-5717-4562-b3fc-2c963f66afa6
-
-###
-
 ### Erfasse eine neue Impfung (Grundimmunisierung Dosis 2/3)
-POST http://localhost:9112/bff-producer-server/api/immunizations?personId=3fa85f64-5717-4562-b3fc-2c963f66afa6
+POST http://localhost:{{port}}/bff-producer-server/api/immunizations?personId=3fa85f64-5717-4562-b3fc-2c963f66afa6
 Content-Type: application/json
+Authorization: Bearer {{authTokenDoctor}}
 
 {
   "vaccineName": "Boostrix Polio",
