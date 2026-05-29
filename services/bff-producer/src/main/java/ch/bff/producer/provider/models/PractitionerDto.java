@@ -9,7 +9,6 @@ public record PractitionerDto(
         if (doctorName == null || doctorName.isBlank()) {
             throw new IllegalArgumentException("Arztname darf nicht leer sein");
         }
-        // Validierung der 13-stelligen Schweizer GLN (Global Location Number)
         if (gln != null && !gln.matches("^7601\\d{9}$")) {
             throw new IllegalArgumentException("Ungültiges GLN-Format (muss eine 13-stellige Zahl beginnend mit 7601 sein)");
         }

@@ -3,9 +3,17 @@ package ch.bff.producer;
 import ch.bff.producer.client.FhirClient;
 import ch.bff.producer.mapstruct.VaccinationsMapper;
 import ch.bff.producer.provider.models.VaccinationDto;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Immunization;
+import org.hl7.fhir.r4.model.Practitioner;
+import org.hl7.fhir.r4.model.PractitionerRole;
+import org.hl7.fhir.r4.model.Reference;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class VacctinationsReadService {
@@ -22,16 +30,92 @@ public class VacctinationsReadService {
     public List<VaccinationDto> getVaccinationList(String patientIamId) {
         var bundle = fhirClient.getVaccinationRecord(patientIamId);
 
+        Map<String, Immunization> immunizationMap = new HashMap<>();
+        for (var entry : bundle.getEntry()) {
+            if (entry.getResource() instanceof Immunization imm) {
+                if (entry.getFullUrl() != null) {
+                    immunizationMap.put(entry.getFullUrl(), imm);
+                }
+                String idPart = imm.getIdElement().getIdPart();
+                immunizationMap.put(imm.fhirType() + "/" + idPart, imm);
+            }
+        }
+
+        var practitionerRoleDisplayMap = buildPractitionerRoleDisplayMap(bundle);
+
         return bundle.getEntry().stream()
-                .filter(entry -> entry.getResource() instanceof org.hl7.fhir.r4.model.Composition)
-                .map(entry -> (org.hl7.fhir.r4.model.Composition) entry.getResource())
+                .filter(e -> e.getResource() instanceof org.hl7.fhir.r4.model.Composition)
+                .map(e -> (org.hl7.fhir.r4.model.Composition) e.getResource())
                 .flatMap(composition -> composition.getSection().stream())
                 .filter(section -> section.getCode().getCoding().stream()
                         .anyMatch(coding -> "http://loinc.org".equals(coding.getSystem()) && IMMUNIZATION_LOINC_CODE.equals(coding.getCode())))
                 .flatMap(section -> section.getEntry().stream())
-                .filter(entry -> entry.getResource() instanceof org.hl7.fhir.r4.model.Immunization)
-                .map(entry -> (org.hl7.fhir.r4.model.Immunization) entry.getResource())
+                .map(ref -> resolveImmunization(ref, immunizationMap))
+                .filter(Objects::nonNull)
+                .map(imm -> {
+                    resolvePractitionerDisplay(imm, practitionerRoleDisplayMap);
+                    return imm;
+                })
                 .map(vaccinationsMapper::toVaccinationDto)
                 .toList();
+    }
+
+    private Immunization resolveImmunization(Reference ref, Map<String, Immunization> immunizationMap) {
+        if (ref.getResource() instanceof Immunization imm) {
+            return imm;
+        }
+        String refStr = ref.getReference();
+        if (refStr != null) {
+            return immunizationMap.get(refStr);
+        }
+        return null;
+    }
+
+    static Map<String, String> buildPractitionerRoleDisplayMap(Bundle bundle) {
+        Map<String, String> pracRefToDisplay = new HashMap<>();
+        for (var entry : bundle.getEntry()) {
+            if (entry.getResource() instanceof Practitioner p && p.hasName()) {
+                var ref = p.fhirType() + "/" + p.getIdElement().getIdPart();
+                pracRefToDisplay.put(ref, p.getNameFirstRep().getNameAsSingleString());
+                if (entry.getFullUrl() != null) {
+                    pracRefToDisplay.put(entry.getFullUrl(), p.getNameFirstRep().getNameAsSingleString());
+                }
+            }
+        }
+
+        Map<String, String> roleDisplayMap = new HashMap<>();
+        for (var entry : bundle.getEntry()) {
+            if (entry.getResource() instanceof PractitionerRole pr) {
+                var roleRef = pr.fhirType() + "/" + pr.getIdElement().getIdPart();
+                if (entry.getFullUrl() != null) {
+                    roleDisplayMap.put(entry.getFullUrl(), resolveNameFromPracRef(pr, pracRefToDisplay, entry.getFullUrl()));
+                }
+                roleDisplayMap.put(roleRef, resolveNameFromPracRef(pr, pracRefToDisplay, roleRef));
+            }
+        }
+        return roleDisplayMap;
+    }
+
+    private static String resolveNameFromPracRef(PractitionerRole pr, Map<String, String> pracRefToDisplay, String fallbackKey) {
+        var pracRef = pr.getPractitioner().getReference();
+        if (pracRef != null) {
+            var name = pracRefToDisplay.get(pracRef);
+            if (name != null) return name;
+        }
+        return fallbackKey;
+    }
+
+    private void resolvePractitionerDisplay(Immunization imm, Map<String, String> practitionerRoleDisplayMap) {
+        for (var performer : imm.getPerformer()) {
+            var actor = performer.getActor();
+            if (actor == null || actor.hasDisplay()) continue;
+            var ref = actor.getReference();
+            if (ref != null) {
+                var displayName = practitionerRoleDisplayMap.get(ref);
+                if (displayName != null) {
+                    actor.setDisplay(displayName);
+                }
+            }
+        }
     }
 }

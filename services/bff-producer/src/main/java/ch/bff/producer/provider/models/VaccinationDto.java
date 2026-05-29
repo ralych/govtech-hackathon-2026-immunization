@@ -15,7 +15,6 @@ public record VaccinationDto(
         PractitionerDto practitioner,
         VaccinationReason vaccinationReason
 ) {
-    // Kompakter Konstruktor für Pflichtfeld- und Formatvalidierungen
     public VaccinationDto {
         if (id == null) {
             throw new IllegalArgumentException("ID darf nicht null sein");
@@ -28,9 +27,6 @@ public record VaccinationDto(
         }
         if (vaccinationDate == null) {
             throw new IllegalArgumentException("Impfdatum darf nicht null sein");
-        }
-        if (manufacturer == null || manufacturer.isBlank()) {
-            throw new IllegalArgumentException("Hersteller darf nicht leer sein");
         }
         if (lotNumber == null || lotNumber.isBlank()) {
             throw new IllegalArgumentException("Chargennummer (Lot) darf nicht leer sein");
