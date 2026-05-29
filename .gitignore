@@ -3,3 +3,6 @@ progress/
 tmp/
 bin/
 .idea/
+
+# Local doctor mock testing
+frontends/frontend-producer/src/mock-test-data.js

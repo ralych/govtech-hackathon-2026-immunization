@@ -6,7 +6,7 @@ function PatientDetail({ patientId, onBack, onAddVaccination, justAdded, onVacci
   const [records, setRecords] = useState([]);
   const [vaxLoading, setVaxLoading] = useState(true);
 
-  useEffect(() => {
+  const loadImmunizations = () => {
     setVaxLoading(true);
     DataService.fetchImmunizations(patientId)
       .then((apiImms) => {
@@ -19,12 +19,16 @@ function PatientDetail({ patientId, onBack, onAddVaccination, justAdded, onVacci
         setRecords(fallback);
         setVaxLoading(false);
       });
+  };
+
+  useEffect(() => {
+    loadImmunizations();
   }, [patientId]);
 
-  // Wenn eine neue Impfung via onVaccinationCreated hinzugefügt wurde, in records einfügen
+  // Wenn eine neue Impfung via onVaccinationCreated hinzugefügt wurde, die Liste neu laden
   useEffect(() => {
-    if (justAdded && justAdded._addedId && !records.find((r) => r.id === justAdded._addedId)) {
-      setRecords((prev) => [...prev, justAdded]);
+    if (justAdded && justAdded.id) {
+      loadImmunizations();
     }
   }, [justAdded]);
 
@@ -146,42 +150,49 @@ function VaccinationGroup({ group, justAddedId }) {
       </header>
 
       <ol className="vax-timeline">
-        {group.items.map((r, i) =>
-        <li key={r.id} className={"vax-entry" + (justAddedId === r.id ? " is-new" : "")}>
-            <div className="vax-tl-dot" aria-hidden="true" />
-            <div className="vax-entry-card">
-              <div className="vax-entry-main">
-                <div className="vax-entry-headline">
-                  <span className="vax-vaccine">{r.vaccine}</span>
-                  <span className="vax-dose-pill">{r.dose}</span>
-                  {justAddedId === r.id && <span className="badge badge-success">Neu</span>}
-                </div>
-                <div className="vax-entry-meta-row">
-                  <span><b className="tnum">{formatDate(r.date)}</b></span>
-                  <span className="dot">·</span>
-                  <span>{r.manufacturer}</span>
-                  <span className="dot">·</span>
-                  <span>Charge <span className="mono">{r.batch}</span></span>
-                </div>
-                <div className="vax-entry-meta-row sub">
-                  <span>{r.route}</span>
-                  <span className="dot">·</span>
-                  <span>{r.site}</span>
-                  {r.note && <><span className="dot">·</span><span>{r.note}</span></>}
-                </div>
-                {r.vaccinationReason && (
-                  <div className="vax-entry-meta-row reason" style={{ fontStyle: 'italic', color: 'var(--primary)', marginTop: 4 }}>
-                    Impfgrund: {r.vaccinationReason.swissLabel || r.vaccinationReason.display || r.vaccinationReason}
+        {group.items.map((r, i) => {
+          const doseLabel = r.doseNumber === 'Booster'
+            ? 'Booster'
+            : (r.doseNumber && r.seriesDoses)
+              ? `Dosis ${r.doseNumber} / ${r.seriesDoses}`
+              : r.dose;
+          return (
+            <li key={r.id} className={"vax-entry" + (justAddedId === r.id ? " is-new" : "")}>
+              <div className="vax-tl-dot" aria-hidden="true" />
+              <div className="vax-entry-card">
+                <div className="vax-entry-main">
+                  <div className="vax-entry-headline">
+                    <span className="vax-vaccine">{r.vaccine}</span>
+                    <span className="vax-dose-pill">{doseLabel}</span>
+                    {justAddedId === r.id && <span className="badge badge-success">Neu</span>}
                   </div>
-                )}
+                  <div className="vax-entry-meta-row">
+                    <span><b className="tnum">{formatDate(r.date)}</b></span>
+                    <span className="dot">·</span>
+                    <span>{r.manufacturer}</span>
+                    <span className="dot">·</span>
+                    <span>Charge <span className="mono">{r.batch}</span></span>
+                  </div>
+                  <div className="vax-entry-meta-row sub">
+                    <span>{r.route}</span>
+                    <span className="dot">·</span>
+                    <span>{r.site}</span>
+                    {r.note && <><span className="dot">·</span><span>{r.note}</span></>}
+                  </div>
+                  {r.vaccinationReason && (
+                    <div className="vax-entry-meta-row reason" style={{ fontStyle: 'italic', color: 'var(--primary)', marginTop: 4 }}>
+                      Impfgrund: {r.vaccinationReason.swissLabel || r.vaccinationReason.display || r.vaccinationReason}
+                    </div>
+                  )}
+                </div>
+                <div className="vax-entry-side">
+                  <div className="vax-entry-doc">{r.practitioner?.doctorName || 'Dr. S. Müller'}</div>
+                  <div className="vax-entry-gln mono">{r.practitioner ? 'GLN ' + r.practitioner.gln?.slice(0, 4) + '…' + r.practitioner.gln?.slice(-4) : 'GLN 7601…3456'}</div>
+                </div>
               </div>
-              <div className="vax-entry-side">
-                <div className="vax-entry-doc">{r.practitioner?.doctorName || 'Dr. S. Müller'}</div>
-                <div className="vax-entry-gln mono">{r.practitioner ? 'GLN ' + r.practitioner.gln?.slice(0, 4) + '…' + r.practitioner.gln?.slice(-4) : 'GLN 7601…3456'}</div>
-              </div>
-            </div>
-          </li>
-        )}
+            </li>
+          );
+        })}
       </ol>
     </section>);
 

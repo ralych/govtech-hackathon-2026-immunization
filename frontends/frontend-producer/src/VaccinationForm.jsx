@@ -100,32 +100,26 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
         <div className="sheet-body">
           <FormGroup title="Impfstoff" eyebrow="1">
             <div className="grid-2">
-              <Field label="Impfstoff" required error={touched.vaccine && errors.vaccine}>
-                <input
-                  className="input"
-                  list="vaccine-list"
-                  placeholder="z. B. Boostrix Polio"
-                  value={form.vaccine}
-                  onChange={(e) => set("vaccine", e.target.value)}
-                  onBlur={() => touch("vaccine")} />
-                
-                <datalist id="vaccine-list">
-                  {vaccineCatalog.map((v) => <option key={v} value={v} />)}
-                </datalist>
-              </Field>
-              <Field label="Zulassungsinhaberin / Hersteller" required error={touched.manufacturer && errors.manufacturer}>
-                <input
-                  className="input"
-                  list="manuf-list"
-                  placeholder="z. B. GlaxoSmithKline"
-                  value={form.manufacturer}
-                  onChange={(e) => set("manufacturer", e.target.value)}
-                  onBlur={() => touch("manufacturer")} />
-                
-                <datalist id="manuf-list">
-                  {manufacturers.map((v) => <option key={v} value={v} />)}
-                </datalist>
-              </Field>
+              <Autocomplete
+                label="Impfstoff"
+                required
+                placeholder="z. B. Boostrix Polio"
+                value={form.vaccine}
+                onChange={(v) => set("vaccine", v)}
+                onBlur={() => touch("vaccine")}
+                options={vaccineCatalog}
+                error={touched.vaccine && errors.vaccine}
+              />
+              <Autocomplete
+                label="Zulassungsinhaberin / Hersteller"
+                required
+                placeholder="z. B. GlaxoSmithKline"
+                value={form.manufacturer}
+                onChange={(v) => set("manufacturer", v)}
+                onBlur={() => touch("manufacturer")}
+                options={manufacturers}
+                error={touched.manufacturer && errors.manufacturer}
+              />
               <Field label="Chargennummer" required hint="Auf der Impfstoffpackung — z. B. EW0150" error={touched.batch && errors.batch}>
                 <input className="input mono" placeholder="A1B2C3" value={form.batch}
                 onChange={(e) => set("batch", e.target.value.toUpperCase())} onBlur={() => touch("batch")} />
@@ -282,6 +276,132 @@ function Field({ label, required, hint, error, children, style }) {
 
 function inferDiseaseFromVaccine(vaccine) {
   return DataService.inferDisease(vaccine);
+}
+
+/* ---------- Custom liquidglas Autocomplete component ---------- */
+
+function Autocomplete({ label, value, onChange, onBlur, options, placeholder, required, error, hint }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState(value || "");
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    setSearch(value || "");
+  }, [value]);
+
+  const filteredOptions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return options;
+    return options.filter(opt => opt.toLowerCase().includes(q));
+  }, [options, search]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+        if (onBlur) onBlur();
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [search, value, onBlur]);
+
+  const selectOption = (opt) => {
+    onChange(opt);
+    setSearch(opt);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="autocomplete-container" ref={containerRef} style={{ position: "relative" }}>
+      <Field label={label} required={required} error={error} hint={hint}>
+        <div className="input-wrap" style={{ position: "relative" }}>
+          <input
+            className="input"
+            type="text"
+            placeholder={placeholder}
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              onChange(e.target.value);
+              setIsOpen(true);
+            }}
+            onFocus={() => setIsOpen(true)}
+          />
+          <button
+            type="button"
+            className="btn-icon btn-ghost autocomplete-toggle"
+            onClick={() => setIsOpen(!isOpen)}
+            style={{
+              position: "absolute",
+              right: 4,
+              top: "50%",
+              transform: "translateY(-50%)",
+              border: 0,
+              cursor: "pointer",
+              padding: 6,
+              color: "var(--text-3)",
+              display: "flex",
+              alignItems: "center",
+              background: "transparent"
+            }}
+            aria-label="Liste öffnen"
+          >
+            <Icon.ChevronDown />
+          </button>
+        </div>
+      </Field>
+      {isOpen && filteredOptions.length > 0 && (
+        <ul
+          className="autocomplete-dropdown"
+          role="listbox"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 4px)",
+            left: 0,
+            width: "100%",
+            maxHeight: "180px",
+            overflowY: "auto",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--r-md)",
+            boxShadow: "var(--shadow-lg)",
+            zIndex: 1000,
+            listStyle: "none",
+            margin: 0,
+            padding: "4px 0",
+            backdropFilter: "blur(20px)",
+            backgroundColor: "rgba(255, 255, 255, 0.92)",
+            border: "1px solid rgba(255, 255, 255, 0.6)"
+          }}
+        >
+          {filteredOptions.map((opt) => (
+            <li
+              key={opt}
+              role="option"
+              aria-selected={value === opt}
+              onClick={() => selectOption(opt)}
+              style={{
+                padding: "8px 12px",
+                cursor: "pointer",
+                fontSize: "13px",
+                color: value === opt ? "var(--brand)" : "var(--text)",
+                backgroundColor: value === opt ? "var(--brand-50)" : "transparent",
+                fontWeight: value === opt ? "600" : "400"
+              }}
+              onMouseEnter={(e) => {
+                if (value !== opt) e.target.style.backgroundColor = "var(--surface-hover)";
+              }}
+              onMouseLeave={(e) => {
+                if (value !== opt) e.target.style.backgroundColor = "transparent";
+              }}
+            >
+              {opt}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
 window.VaccinationForm = VaccinationForm;

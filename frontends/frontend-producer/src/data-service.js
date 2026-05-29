@@ -75,6 +75,8 @@ function transformImmunization(apiImm) {
     disease: inferDisease(apiImm.vaccineName || ''),
     date: apiImm.vaccinationDate || '',
     dose: apiImm.doseSequence || '',
+    doseNumber: apiImm.doseNumber || undefined,
+    seriesDoses: apiImm.seriesDoses || undefined,
     batch: apiImm.lotNumber || '',
     manufacturer: apiImm.manufacturer || '',
     route: apiImm.administrationRoute || '',
