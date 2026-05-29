@@ -9,5 +9,4 @@ public interface FhirClient {
 
     @GetMapping
     Patient getPatient();
-        // Hier könnte
 }

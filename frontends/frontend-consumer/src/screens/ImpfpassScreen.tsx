@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -14,6 +14,11 @@ import { VaccinationGroup } from '../components/VaccinationGroup';
 export function ImpfpassScreen() {
   const insets = useSafeAreaInsets();
   const [selectedId, setSelectedId] = useState(family[0].id);
+
+  const logout = () => {
+    try { sessionStorage.removeItem('auth'); } catch {}
+    window.location.replace('/');
+  };
 
   const member = useMemo(
     () => family.find((m) => m.id === selectedId) ?? family[0],
@@ -34,6 +39,10 @@ export function ImpfpassScreen() {
             </Text>
             <Text style={styles.brandSub}>Elektronisches Impfdossier</Text>
           </View>
+          <View style={{ flex: 1 }} />
+          <Pressable style={styles.logoutBtn} onPress={logout} accessibilityLabel="Abmelden" accessibilityRole="button">
+            <Text style={styles.logoutText}>Abmelden</Text>
+          </Pressable>
         </View>
         <ProfileSwitcher members={family} selectedId={selectedId} onSelect={setSelectedId} />
       </View>
@@ -212,6 +221,16 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: spacing.md,
     fontSize: font.label,
+    color: colors.textMuted,
+  },
+  logoutBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginRight: spacing.lg,
+  },
+  logoutText: {
+    fontSize: font.label,
+    fontWeight: '500',
     color: colors.textMuted,
   },
   empty: {

@@ -211,6 +211,31 @@ input, select, textarea { font-family: inherit; font-size: 14px; }
 }
 .doc-info .doc-meta .dot { color: var(--text-3); }
 
+/* Logout button */
+.logout-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 8px 16px;
+  border-radius: 999px;
+  color: var(--text-3);
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all .15s;
+  white-space: nowrap;
+  border-left: 1px solid var(--border);
+  margin-left: 4px;
+}
+.logout-btn:hover {
+  color: var(--danger);
+  background: var(--danger-50);
+  border-color: var(--danger);
+}
+
 /* ====================== PAGE LAYOUT ====================== */
 
 .page {
