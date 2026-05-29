@@ -12,7 +12,7 @@ RUN ./mvnw package -DskipTests -B && \
 
 # Stage 2 — runtime image
 FROM bellsoft/liberica-openjdk-alpine:latest
-EXPOSE 9111
+EXPOSE 9112
 
 COPY --from=build /bff-producer-server.jar /bff-producer-server.jar
 

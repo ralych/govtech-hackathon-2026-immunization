@@ -2,6 +2,7 @@ package ch.bff.producer.provider.models;
 import java.time.LocalDate;
 
 public record PatientDto(
+        String id,
         String lastName,
         String firstName,
         LocalDate birthDate,
@@ -12,7 +13,6 @@ public record PatientDto(
         String email,
         String phoneNumber
 ) {
-    // Ein kompakter Konstruktor kann optional für Validierungen genutzt werden
     public PatientDto {
         if (lastName == null || lastName.isBlank()) {
             throw new IllegalArgumentException("Nachname darf nicht leer sein");

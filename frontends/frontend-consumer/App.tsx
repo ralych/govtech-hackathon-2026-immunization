@@ -4,7 +4,7 @@ import { ImpfpassScreen } from './src/screens/ImpfpassScreen';
 
 export default function App() {
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider style={{ flex: 1 }}>
       <ImpfpassScreen />
     </SafeAreaProvider>
   );

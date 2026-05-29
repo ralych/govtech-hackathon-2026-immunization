@@ -105,6 +105,13 @@ const Icon = {
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" {...p}>
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
+    </svg>,
+
+  Logout: (p) =>
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16,17 21,12 16,7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
 
 };
@@ -138,6 +145,7 @@ function initials(first, last) {
 
 function TopBar({ crumbs = [], onCrumb }) {
   const d = window.AppData.doctor;
+  const logout = () => { sessionStorage.removeItem('auth'); window.location.replace('/'); };
   return (
     <header className="topbar">
       <div className="topbar-inner">
@@ -163,6 +171,10 @@ function TopBar({ crumbs = [], onCrumb }) {
             </div>
           </div>
         </div>
+
+        <button className="logout-btn" onClick={logout} title="Abmelden">
+          <Icon.Logout /> <span>Abmelden</span>
+        </button>
       </div>
     </header>);
 

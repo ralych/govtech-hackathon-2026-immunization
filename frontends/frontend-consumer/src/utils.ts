@@ -1,4 +1,4 @@
-import type { DiseaseGroup, Relation, Vaccination } from './types';
+import type { DiseaseGroup, Vaccination } from './types';
 
 const FULL_DATE: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric' };
 const SHORT_DATE: Intl.DateTimeFormatOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
@@ -21,19 +21,11 @@ export function calcAge(dobIso: string): number {
   return age;
 }
 
+/** Get initials for name */
 export function initials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
 
-const RELATION_LABEL: Record<Relation, string> = {
-  self: 'Ich',
-  son: 'Sohn',
-  daughter: 'Tochter',
-};
-
-export function relationLabel(relation: Relation): string {
-  return RELATION_LABEL[relation];
-}
 
 /** Group vaccinations by target disease; entries ascending by date, groups by most-recent dose. */
 export function groupByDisease(vaccinations: readonly Vaccination[]): DiseaseGroup[] {

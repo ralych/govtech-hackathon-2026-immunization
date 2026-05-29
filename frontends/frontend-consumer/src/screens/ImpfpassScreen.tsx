@@ -1,25 +1,104 @@
-import { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import type { DiseaseGroup } from '../types';
-import { family } from '../data';
+import type { DiseaseGroup, PatientDossier } from '../types';
 import { colors, font, radius, spacing } from '../theme';
-import { calcAge, groupByDisease, relationLabel } from '../utils';
+import { groupByDisease } from '../utils';
 import { Avatar } from '../components/Avatar';
-import { ProfileSwitcher } from '../components/ProfileSwitcher';
 import { VaccinationGroup } from '../components/VaccinationGroup';
 
 export function ImpfpassScreen() {
   const insets = useSafeAreaInsets();
-  const [selectedId, setSelectedId] = useState(family[0].id);
+  const [dossier, setDossier] = useState<PatientDossier | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const member = useMemo(
-    () => family.find((m) => m.id === selectedId) ?? family[0],
-    [selectedId],
-  );
-  const groups = useMemo(() => groupByDisease(member.vaccinations), [member]);
+  const logout = () => {
+    try { sessionStorage.removeItem('auth'); } catch {}
+    window.location.replace('/');
+  };
+
+  useEffect(() => {
+    let patientId = '10001'; // Default Fallback
+    try {
+      const authStr = sessionStorage.getItem('auth');
+      if (authStr) {
+        const auth = JSON.parse(authStr);
+        if (auth.userId) {
+          patientId = auth.userId;
+        }
+      }
+    } catch (e) {
+      console.warn('sessionStorage is not available or auth parse failed', e);
+    }
+
+    fetch(`/api/bff-consumer/patients/${patientId}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Server lieferte Status ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data: any) => {
+        // Map API response to our client-side type
+        const vaccinationsMapped = (data.vaccinations || []).map((v: any, i: number) => ({
+          id: v.id || `v-${i}`,
+          disease: v.targetDisease || '',
+          vaccine: v.vaccineName || '',
+          date: v.vaccinationDate || '',
+          dose: v.doseSequence || '',
+          doseNumber: v.doseNumber || undefined,
+          seriesDoses: v.seriesDoses || undefined,
+          vaccinationReason: v.vaccinationReason || undefined,
+          manufacturer: v.manufacturer || '',
+          batch: v.lotNumber || '',
+          route: v.administrationRoute || '',
+          site: v.siteOfAdministration || '',
+          season: v.season || undefined,
+        }));
+        setDossier({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          age: data.age,
+          gender: data.gender,
+          vaccinations: vaccinationsMapped,
+        });
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error loading patient dossier:', err);
+        setError(err.message || 'Verbindungsfehler beim Laden des Impfdossiers.');
+        setLoading(false);
+      });
+  }, []);
+
+  const groups = useMemo(() => {
+    if (!dossier) return [];
+    return groupByDisease(dossier.vaccinations);
+  }, [dossier]);
+
+  if (loading) {
+    return (
+      <View style={[styles.root, styles.center]}>
+        <StatusBar style="dark" />
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.messageText, { marginTop: spacing.md }]}>Lade Impfdossier...</Text>
+      </View>
+    );
+  }
+
+  if (error || !dossier) {
+    return (
+      <View style={[styles.root, styles.center]}>
+        <StatusBar style="dark" />
+        <Text style={[styles.messageText, styles.errorText]}>
+          {error || 'Ein unerwarteter Fehler ist aufgetreten.'}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
@@ -34,19 +113,22 @@ export function ImpfpassScreen() {
             </Text>
             <Text style={styles.brandSub}>Elektronisches Impfdossier</Text>
           </View>
+          <View style={{ flex: 1 }} />
+          <Pressable style={styles.logoutBtn} onPress={logout} accessibilityLabel="Abmelden" accessibilityRole="button">
+            <Text style={styles.logoutText}>Abmelden</Text>
+          </Pressable>
         </View>
-        <ProfileSwitcher members={family} selectedId={selectedId} onSelect={setSelectedId} />
       </View>
 
       <FlatList<DiseaseGroup>
         data={groups}
         keyExtractor={(group) => group.disease}
         renderItem={({ item }) => <VaccinationGroup group={item} />}
-        ListHeaderComponent={<ProfileSummary member={member} groupCount={groups.length} />}
+        ListHeaderComponent={<ProfileSummary dossier={dossier} groupCount={groups.length} />}
         ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyTitle}>Keine Impfungen erfasst</Text>
-            <Text style={styles.emptySub}>Für {member.firstName} liegen noch keine Einträge vor.</Text>
+            <Text style={styles.emptySub}>Für {dossier.firstName} liegen noch keine Einträge vor.</Text>
           </View>
         }
         contentContainerStyle={[
@@ -60,28 +142,26 @@ export function ImpfpassScreen() {
 }
 
 function ProfileSummary({
-  member,
+  dossier,
   groupCount,
 }: {
-  member: (typeof family)[number];
+  dossier: PatientDossier;
   groupCount: number;
 }) {
-  const age = calcAge(member.dob);
-  const total = member.vaccinations.length;
-  const sex = member.sex === 'F' ? 'weiblich' : 'männlich';
+  const total = dossier.vaccinations.length;
   return (
     <>
       <View
         style={styles.summary}
         accessible
-        accessibilityLabel={`${member.firstName} ${member.lastName}, ${relationLabel(member.relation)}, ${age} Jahre, ${total} Impfungen erfasst`}>
-        <Avatar firstName={member.firstName} lastName={member.lastName} size={56} />
+        accessibilityLabel={`${dossier.firstName} ${dossier.lastName}, ${dossier.age} Jahre, ${total} Impfungen erfasst`}>
+        <Avatar firstName={dossier.firstName} lastName={dossier.lastName} size={56} />
         <View style={styles.summaryText}>
           <Text style={styles.summaryName}>
-            {member.lastName}, {member.firstName}
+            {dossier.lastName}, {dossier.firstName}
           </Text>
           <Text style={styles.summaryMeta}>
-            {relationLabel(member.relation)} · {age} Jahre · {sex}
+            Ich · {dossier.age} Jahre · {dossier.gender}
           </Text>
         </View>
         <View style={styles.summaryStat}>
@@ -114,6 +194,21 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.bg,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  messageText: {
+    fontSize: font.body,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  errorText: {
+    color: colors.swissRed || '#d32f2f',
+    fontWeight: '600',
   },
   appBar: {
     backgroundColor: colors.surface,
@@ -214,6 +309,16 @@ const styles = StyleSheet.create({
     fontSize: font.label,
     color: colors.textMuted,
   },
+  logoutBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginRight: spacing.lg,
+  },
+  logoutText: {
+    fontSize: font.label,
+    fontWeight: '500',
+    color: colors.textMuted,
+  },
   empty: {
     alignItems: 'center',
     paddingVertical: spacing.xxl,
@@ -229,3 +334,4 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 });
+

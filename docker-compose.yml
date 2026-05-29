@@ -25,6 +25,8 @@ services:
       context: ./services/bff-producer
     image: vacd/bff-producer-server:dev
     container_name: vacd-bff-producer-server
+    environment:
+      FHIR_BASE_URL: "http://fhir-server-1:9111/ch-vacd-api-reference-server/fhir"
     ports:
       - "9112:9112"
     healthcheck:
@@ -227,11 +229,7 @@ services:
       retries: 12
 
   # Consumer BFF (FastAPI). Reads CH VACD Immunizations from fhir-server-1
-  # and flattens them into FE-friendly JSON. Profile-gated so it does not
-  # start with the default harness:
-  #   docker compose --profile bff up --wait bff-consumer
   bff-consumer:
-    profiles: ["bff"]
     build:
       context: ./services/bff-consumer
     image: vacd/bff-consumer:dev
@@ -287,26 +285,35 @@ services:
       start_period: 5s
       retries: 6
 
-  # Creator (Arzt Frontend)
-  creator-frontend:
-    build:
-      context: ./frontends/frontend-producer
-    container_name: vacd-creator-frontend
-    ports:
-      - "3002:80"
-
   # Login Frontend
   login-frontend:
     build:
       context: ./frontends/login
     container_name: vacd-login-frontend
+    depends_on:
+      bff-consumer:
+        condition: service_healthy
+      producer-frontend:
+        condition: service_started
+      consumer-frontend:
+        condition: service_started
     ports:
       - "3003:80"
+
+  # Producer (Arzt Frontend)
+  producer-frontend:
+    build:
+      context: ./frontends/frontend-producer
+    container_name: vacd-producer-frontend
+    ports:
+      - "3002:80"
+    volumes:
+      - ./frontends/frontend-producer:/usr/share/nginx/html
 
   # Consumer (Patient Frontend)
   consumer-frontend:
     build:
-      context: ./frontends/frontend-creator
+      context: ./frontends/frontend-consumer
     container_name: vacd-consumer-frontend
     ports:
       - "3004:80"

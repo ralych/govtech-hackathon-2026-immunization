@@ -56,6 +56,25 @@ components:
               pattern: "^7601\\d{9}$"
               example: "7601000233456"
               description: "Globale Lokationsnummer (GLN) der medizinischen Fachperson in der Schweiz (13-stellig)"
+        vaccinationReason:
+          type: object
+          description: Der Grund für die Impfung basierend auf dem Schweizer Risks ValueSet (http://fhir.ch/ig/ch-vacd/ValueSet/ch-vacd-risks-vs)
+          properties:
+            code:
+              type: string
+              example: "223366009"
+              description: Der offizielle SNOMED CT-Code oder Schweizer Risikocode (z. B. "223366009" für berufliche Risikogruppe)
+            display:
+              type: string
+              example: "Healthcare professional"
+              description: Der offizielle Display-Name des Codes
+            swissLabel:
+              type: string
+              example: "Risikogruppe — beruflich"
+              description: Die praxisnahe Bezeichnung auf Deutsch für die Schweizer Benutzeroberfläche
+          required:
+            - code
+            - display
       required:
         - id
         - vaccineName

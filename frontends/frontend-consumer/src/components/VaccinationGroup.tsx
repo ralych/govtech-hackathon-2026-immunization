@@ -22,9 +22,6 @@ export function VaccinationGroup({ group }: VaccinationGroupProps) {
             {count} {count === 1 ? 'Eintrag' : 'Einträge'} · zuletzt {formatDate(group.latest, { short: true })}
           </Text>
         </View>
-        <View style={styles.badge} accessibilityLabel="Status: geschützt">
-          <Text style={styles.badgeText}>Geschützt</Text>
-        </View>
       </View>
 
       <View style={styles.timeline}>
@@ -37,7 +34,15 @@ export function VaccinationGroup({ group }: VaccinationGroupProps) {
 }
 
 function Entry({ entry, isLast }: { entry: Vaccination; isLast: boolean }) {
-  const label = `${entry.vaccine}, Dosis ${entry.dose}, ${formatDate(entry.date)}, Hersteller ${entry.manufacturer}, Charge ${entry.batch}`;
+  const doseLabel = entry.doseNumber === 'Booster'
+    ? 'Booster'
+    : (entry.doseNumber && entry.seriesDoses)
+      ? `Dosis ${entry.doseNumber} / ${entry.seriesDoses}`
+      : entry.dose;
+
+  const reasonLabel = entry.vaccinationReason ? `, Impfgrund: ${entry.vaccinationReason.swissLabel}` : '';
+  const label = `${entry.vaccine}, ${doseLabel}, ${formatDate(entry.date)}, Hersteller ${entry.manufacturer}, Charge ${entry.batch}${reasonLabel}`;
+
   return (
     <View style={styles.entryRow} accessible accessibilityLabel={label}>
       <View style={styles.rail}>
@@ -48,7 +53,7 @@ function Entry({ entry, isLast }: { entry: Vaccination; isLast: boolean }) {
         <View style={styles.entryHead}>
           <Text style={styles.vaccine}>{entry.vaccine}</Text>
           <View style={styles.dosePill}>
-            <Text style={styles.dosePillText}>{entry.dose}</Text>
+            <Text style={styles.dosePillText}>{doseLabel}</Text>
           </View>
         </View>
         <Text style={styles.entryDate}>{formatDate(entry.date)}</Text>
@@ -57,12 +62,17 @@ function Entry({ entry, isLast }: { entry: Vaccination; isLast: boolean }) {
         </Text>
         <Text style={styles.entrySub}>
           {entry.route} · {entry.site}
-          {entry.note ? ` · ${entry.note}` : ''}
         </Text>
+        {entry.vaccinationReason ? (
+          <Text style={styles.reasonText}>
+            Impfgrund: {entry.vaccinationReason.swissLabel}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {
@@ -165,5 +175,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontSize: font.label,
     color: colors.textMuted,
+  },
+  reasonText: {
+    fontStyle: 'italic',
+    color: colors.primary,
+    fontWeight: '500',
+    marginTop: 4,
+    fontSize: font.label,
   },
 });
