@@ -6,11 +6,19 @@ Authorization: Basic ZG9jdG9yMTpwYXNzMTIz
     client.global.set("authToken", response.body.token);
 %}
 
+### 1. Authenticate (patient) — JWT holen
+POST http://localhost:3003/api/authenticate
+Authorization: Basic cGF0aWVudDE6cGFzczEyMw==
+
+> {%
+    client.global.set("authToken", response.body.token);
+%}
+
 ### 2. Patientenliste via nginx Gateway (wie Frontend)
 GET http://localhost:3003/api/bff-producer/patients
 Authorization: Bearer {{authToken}}
 
-### 3. Patientenliste direkt
+### 3. Patientenliste direkt (unauthorized)
 GET http://localhost:{{port}}/bff-producer-server/api/patients
 
 ### 4. Patientenliste direkt mit Auth
