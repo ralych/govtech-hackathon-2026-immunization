@@ -43,6 +43,18 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    void healthEndpoint_noAuth_returns200() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void anyOtherEndpoint_denyAll_returns401() throws Exception {
+        mockMvc.perform(get("/swagger-ui.html"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     void invalidToken_returns401() throws Exception {
         mockMvc.perform(get("/api/patients")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer not-a-valid-jwt"))
