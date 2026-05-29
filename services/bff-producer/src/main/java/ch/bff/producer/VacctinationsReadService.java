@@ -5,9 +5,11 @@ import ch.bff.producer.mapstruct.VaccinationsMapper;
 import ch.bff.producer.provider.models.VaccinationDto;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Immunization;
+import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.StringType;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -28,7 +30,9 @@ public class VacctinationsReadService {
     }
 
     public List<VaccinationDto> getVaccinationList(String patientIamId) {
-        var bundle = fhirClient.getVaccinationRecord(patientIamId);
+        var params = new Parameters();
+        params.addParameter().setName("patientId").setValue(new StringType(patientIamId));
+        var bundle = fhirClient.getVaccinationRecord(params);
 
         Map<String, Immunization> immunizationMap = new HashMap<>();
         for (var entry : bundle.getEntry()) {

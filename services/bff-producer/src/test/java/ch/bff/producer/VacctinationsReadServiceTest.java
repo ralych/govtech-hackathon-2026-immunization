@@ -5,6 +5,7 @@ import ch.bff.producer.client.FhirClient;
 import ch.bff.producer.mapstruct.VaccinationsMapper;
 import ch.bff.producer.provider.models.VaccinationDto;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -144,7 +145,7 @@ class VacctinationsReadServiceTest {
         }
 
         @Override
-        public Bundle getVaccinationRecord(String patientIamId) {
+        public Bundle getVaccinationRecord(Parameters parameters) {
             return bundleToReturn;
         }
 

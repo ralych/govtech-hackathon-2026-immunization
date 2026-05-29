@@ -5,12 +5,11 @@ import ch.bff.producer.client.FhirClient;
 import ch.bff.producer.provider.models.AdministeredDose;
 import ch.bff.producer.provider.models.ImmunizationCreateDto;
 import ch.bff.producer.provider.models.RouteOfAdministration;
-import ch.bff.producer.provider.models.VaccinationDto;
 import ch.bff.producer.provider.models.VaccinationReason;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +19,11 @@ import org.junit.jupiter.params.provider.EnumSource;
 import java.time.LocalDate;
 import java.util.Calendar;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ImmunizationAdministrationServiceTest {
 
@@ -285,7 +288,7 @@ class ImmunizationAdministrationServiceTest {
         }
 
         @Override
-        public Bundle getVaccinationRecord(String patientIamId) {
+        public Bundle getVaccinationRecord(Parameters parameters) {
             return null;
         }
 
