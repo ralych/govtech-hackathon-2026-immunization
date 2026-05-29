@@ -17,7 +17,6 @@ import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
-import org.apache.catalina.loader.ResourceEntry;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
@@ -25,7 +24,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -48,8 +46,6 @@ import java.util.stream.StreamSupport;
 @Component
 public class VaccinationProvider {
 
-	private final AllergyIntoleranceProvider allergyIntoleranceProvider;
-
     private static final Logger log = LoggerFactory.getLogger(VaccinationProvider.class);
 
 	private static final String ADMIN_TEMPLATE =
@@ -64,21 +60,20 @@ public class VaccinationProvider {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	public VaccinationProvider(FhirContext fhirContext, EhrbaseClient ehrbaseClient,
-			OpenFhirClient openFhirClient, ResourceRepository store, AllergyIntoleranceProvider allergyIntoleranceProvider) {
+			OpenFhirClient openFhirClient, ResourceRepository store) {
 		this.fhirContext = fhirContext;
 		this.ehrbaseClient = ehrbaseClient;
 		this.openFhirClient = openFhirClient;
 		this.store = store;
-        this.allergyIntoleranceProvider = allergyIntoleranceProvider;
 	}
 
 	/**
-	 * Build a vaccination record by EHR identifier.
-	 * GET /Bundle/$vaccination-record?ehrId={ehrId}
+	 * Build a vaccination record by patient identifier.
+	 * GET /Bundle/vaccinations?patientId={patientId}
 	 */
-	@Operation(name = "$vaccination-record", type = Bundle.class)
+	@Operation(name = "vaccinations", type = Bundle.class)
 	public Bundle vaccinationRecord(
-			@OperationParam(name = "patientId", min = 1) StringType patientIdParam) {
+			@OperationParam(name = "patientId") StringType patientIdParam) {
 
 		String patientId = patientIdParam.getValue();
 		if (patientId == null || patientId.isBlank()) {

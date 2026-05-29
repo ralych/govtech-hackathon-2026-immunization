@@ -12,7 +12,6 @@ import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.param.ReferenceParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ch.hl7.vacd.api.repo.ResourceRepository;
-import ch.hl7.vacd.api.client.EhrbaseClient;
 import ch.hl7.vacd.api.client.OpenFhirClient;
 import ch.hl7.vacd.api.entity.ResourceEntity;
 

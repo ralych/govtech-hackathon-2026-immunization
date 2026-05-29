@@ -23,8 +23,6 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -37,7 +35,6 @@ public class PatientProvider implements IResourceProvider {
 	private final FhirContext fhirContext;
 	private final ResourceRepository store;
 	private final EhrbaseClient ehrbaseClient;
-	private static final Logger log = LoggerFactory.getLogger(PatientProvider.class);
 
 	public PatientProvider(FhirContext fhirContext, ResourceRepository store, EhrbaseClient ehrbaseClient) {
 		this.fhirContext = fhirContext;
