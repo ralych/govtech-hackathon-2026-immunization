@@ -12,25 +12,25 @@ from __future__ import annotations
 from typing import Any
 
 PATIENTS: dict[str, dict[str, Any]] = {
-    "10001": {
+    "00000000-0000-0000-0000-000000000001": {
         "firstName": "Anna",
         "lastName": "Schmid",
         "gender": "female",
         "birthDate": "1984-07-22",
     },
-    "10002": {
+    "00000000-0000-0000-0000-000000000002": {
         "firstName": "Simon",
         "lastName": "Koller",
         "gender": "male",
         "birthDate": "1998-03-15",
     },
-    "10003": {
+    "00000000-0000-0000-0000-000000000003": {
         "firstName": "Lara",
         "lastName": "Müller",
         "gender": "female",
         "birthDate": "2019-04-10",
     },
-    "10004": {
+    "00000000-0000-0000-0000-000000000004": {
         "firstName": "Heinrich",
         "lastName": "Brunner",
         "gender": "male",

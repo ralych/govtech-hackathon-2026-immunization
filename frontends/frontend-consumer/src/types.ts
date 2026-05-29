@@ -11,6 +11,7 @@ export interface Vaccination {
   readonly id: string;
   readonly disease: string;      // targetDisease
   readonly vaccine: string;      // vaccineName
+  readonly vaccineCode: string;  // vaccineCode
   readonly date: string;         // vaccinationDate
   readonly dose: string;         // doseSequence
   readonly doseNumber?: string;   // doseNumber

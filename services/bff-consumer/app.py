@@ -197,6 +197,7 @@ def _expand_vaccinations(imm: dict[str, Any]) -> list[dict[str, Any]]:
         {
             "targetDisease": disease,
             "vaccineName": vaccine_name,
+            "vaccineCode": vaccine_coding.get("code") or "",
             "season": "",
             "doseSequence": dose_sequence,
             "vaccinationDate": vaccination_date,

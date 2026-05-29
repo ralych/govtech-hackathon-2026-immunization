@@ -173,7 +173,7 @@ class ImmunizationAdministrationServiceTest {
     @Test
     void createImmunizationAdministration_withoutSeriesDoses_omitsField() throws Exception {
         var dto = new ImmunizationCreateDto(
-                "Testivac", "TestPharma AG", "LOT12345",
+                "Testivac", "TESTCODE", "TestPharma AG", "LOT12345",
                 LocalDate.of(2026, 1, 1), LocalDate.of(2025, 6, 15),
                 RouteOfAdministration.IM, new AdministeredDose(0.5, "ml"),
                 "Left upper arm", new VaccinationReason("840539006", "COVID-19", null), 3, null, false);
@@ -192,7 +192,7 @@ class ImmunizationAdministrationServiceTest {
     @EnumSource(RouteOfAdministration.class)
     void allRoutes_mapCorrectly(RouteOfAdministration route) throws Exception {
         var dto = new ImmunizationCreateDto(
-                "Testivac", "TestPharma AG", "LOT12345",
+                "Testivac", "TESTCODE", "TestPharma AG", "LOT12345",
                 LocalDate.of(2026, 1, 1), LocalDate.of(2025, 6, 15),
                 route, new AdministeredDose(0.5, "ml"),
                 "Left upper arm", new VaccinationReason("840539006", "COVID-19", null), 3, 3, false);
@@ -262,7 +262,7 @@ class ImmunizationAdministrationServiceTest {
 
     private static ImmunizationCreateDto createDefaultDto() {
         return new ImmunizationCreateDto(
-                "Testivac", "TestPharma AG", "LOT12345",
+                "Testivac", "TESTCODE", "TestPharma AG", "LOT12345",
                 LocalDate.of(2026, 1, 1), LocalDate.of(2025, 6, 15),
                 RouteOfAdministration.IM, new AdministeredDose(0.5, "ml"),
                 "Left upper arm", new VaccinationReason("840539006", "COVID-19", null), 3, 3, false);

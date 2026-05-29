@@ -62,6 +62,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, Object> parseJwtPayload(String token) throws IOException {
         var parts = token.split("\\.");
         if (parts.length < 2) {
@@ -71,7 +72,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         return objectMapper.readValue(decoded, Map.class);
     }
 
-    @SuppressWarnings("unchecked")
     private static String getString(Map<String, Object> map, String key) {
         var value = map.get(key);
         return value instanceof String s ? s : null;

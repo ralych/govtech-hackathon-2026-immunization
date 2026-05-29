@@ -11,13 +11,12 @@ JWT_ALGO = "HS256"
 JWT_TTL = 3600
 
 USERS = {
-    "patient1": {"password": "pass123", "user_id": "10001", "role": "patient"},
-    "patient2": {"password": "pass123", "user_id": "10002", "role": "patient"},
-    "patient3": {"password": "pass123", "user_id": "10003", "role": "patient"},
-    "patient4": {"password": "pass123", "user_id": "10004", "role": "patient"},
-    "doctor1": {"password": "pass123", "user_id": "20001", "role": "doctor"},
+    "patient1": {"password": "pass123", "user_id": "00000000-0000-0000-0000-000000000001", "role": "patient"},
+    "patient2": {"password": "pass123", "user_id": "00000000-0000-0000-0000-000000000002", "role": "patient"},
+    "patient3": {"password": "pass123", "user_id": "00000000-0000-0000-0000-000000000003", "role": "patient"},
+    "patient4": {"password": "pass123", "user_id": "00000000-0000-0000-0000-000000000004", "role": "patient"},
+    "doctor1": {"password": "pass123", "user_id": "10000000-0000-0000-0000-000000000001", "role": "doctor"},
 }
-
 
 def parse_basic_auth(auth_header):
     if not auth_header or not auth_header.startswith("Basic "):
@@ -28,7 +27,6 @@ def parse_basic_auth(auth_header):
         return username, password
     except Exception:
         return None, None
-
 
 @app.route("/authenticate", methods=["POST"])
 def authenticate():
@@ -53,7 +51,6 @@ def authenticate():
     )
 
     return jsonify({"token": token, "userId": user["user_id"], "role": user["role"]})
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

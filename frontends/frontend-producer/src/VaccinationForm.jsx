@@ -6,6 +6,7 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
 
   const [form, setForm] = useState({
     vaccine: "",
+    vaccineCode: "",
     date: today,
     manufacturer: "",
     batch: "",
@@ -52,6 +53,7 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
       const selectedReason = reasons.find(r => r.code === form.reason) || reasons[0];
       const payload = {
         vaccineName: form.vaccine,
+        vaccineCode: form.vaccineCode,
         marketingAuthorizationHolder: form.manufacturer,
         lotNumber: form.batch,
         expiryDate: form.expiry || null,
@@ -115,6 +117,10 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
                 options={vaccineCatalog}
                 error={touched.vaccine && errors.vaccine}
               />
+              <Field label="Impfstoffcode" hint="z. B. ATC- oder GTIN-Code" required>
+                <input className="input mono" placeholder="J07CA02" value={form.vaccineCode}
+                onChange={(e) => set("vaccineCode", e.target.value)} />
+              </Field>
               <Autocomplete
                 label="Zulassungsinhaberin / Hersteller"
                 required
@@ -211,7 +217,7 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
                   placeholder="z. B. Lokalreaktion (Rötung, Schwellung), Fieber, anaphylaktische Reaktion …"
                   value={form.adverseText}
                   onChange={(e) => set("adverseText", e.target.value)} />
-                
+
                   <div className="adverse-warn">
                     <Icon.Alert />
                     <span>Schwerwiegende UAW sind via <b>ElViS</b> an Swissmedic zu melden.</span>

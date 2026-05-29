@@ -18,6 +18,10 @@ components:
           type: string
           example: "Priorix"
           description: "Handelsname des Impfstoffes"
+        vaccineCode:
+          type: string
+          example: "68710-01"
+          description: "Offizieller Code des Impfstoffes"
         doseSequence:
           type: string
           example: "1/2"

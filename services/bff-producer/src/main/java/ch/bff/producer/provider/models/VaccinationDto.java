@@ -6,6 +6,7 @@ import java.util.UUID;
 public record VaccinationDto(
         UUID id,
         String vaccineName,
+        String vaccineCode,
         String doseSequence,
         LocalDate vaccinationDate,
         String manufacturer,
@@ -21,6 +22,9 @@ public record VaccinationDto(
         }
         if (vaccineName == null || vaccineName.isBlank()) {
             throw new IllegalArgumentException("Impfstoffname darf nicht leer sein");
+        }
+        if (vaccineCode == null || vaccineCode.isBlank()) {
+            throw new IllegalArgumentException("Impfstoffcode darf nicht leer sein");
         }
         if (doseSequence == null || doseSequence.isBlank()) {
             throw new IllegalArgumentException("Dosis-Reihenfolge (z.B. 1/2) darf nicht leer sein");

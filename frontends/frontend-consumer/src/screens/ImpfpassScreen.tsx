@@ -21,7 +21,7 @@ export function ImpfpassScreen() {
   };
 
   useEffect(() => {
-    let patientId = '10001'; // Default Fallback
+    let patientId = '0000000-0000-0000-0000-000000000001'; // Default Fallback
     try {
       const authStr = sessionStorage.getItem('auth');
       if (authStr) {
@@ -47,6 +47,7 @@ export function ImpfpassScreen() {
           id: v.id || `v-${i}`,
           disease: v.targetDisease || '',
           vaccine: v.vaccineName || '',
+          vaccineCode: v.vaccineCode || '',
           date: v.vaccinationDate || '',
           dose: v.doseSequence || '',
           doseNumber: v.doseNumber || undefined,

@@ -72,6 +72,7 @@ function transformVaccination(apiImm) {
   return {
     id: apiImm.id,
     vaccine: apiImm.vaccineName || '',
+    vaccineCode: apiImm.vaccineCode || '',
     disease: inferDisease(apiImm.vaccineName || ''),
     date: apiImm.vaccinationDate || '',
     dose: apiImm.doseSequence || '',

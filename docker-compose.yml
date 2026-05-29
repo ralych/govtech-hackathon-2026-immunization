@@ -307,8 +307,6 @@ services:
     container_name: vacd-producer-frontend
     ports:
       - "3002:80"
-    volumes:
-      - ./frontends/frontend-producer:/usr/share/nginx/html
 
   # Consumer (Patient Frontend)
   consumer-frontend:

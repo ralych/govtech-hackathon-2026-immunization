@@ -52,6 +52,9 @@ components:
         vaccineName:
           type: string
           example: "Fluarix Tetra"
+        vaccineCode:
+          type: string
+          example: "68710-01"
         season:
           type: string
           example: "Saison 25/26"

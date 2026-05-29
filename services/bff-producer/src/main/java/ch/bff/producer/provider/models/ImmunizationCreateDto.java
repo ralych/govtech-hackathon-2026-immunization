@@ -6,6 +6,7 @@ public record ImmunizationCreateDto(
         String vaccineName,
         String marketingAuthorizationHolder,
         String lotNumber,
+        String vaccineCode,
         LocalDate expiryDate, // Optional laut Formular
         LocalDate vaccinationDate,
         RouteOfAdministration routeOfAdministration,
@@ -19,6 +20,7 @@ public record ImmunizationCreateDto(
     // Kompakter Konstruktor für die Validierung der Pflichtfelder
     public ImmunizationCreateDto {
         if (vaccineName == null || vaccineName.isBlank()) throw new IllegalArgumentException("Impfstoffname ist ein Pflichtfeld");
+        if (vaccineCode == null || vaccineCode.isBlank()) throw new IllegalArgumentException("Impfstoffcode ist ein Pflichtfeld");
         if (marketingAuthorizationHolder == null || marketingAuthorizationHolder.isBlank()) throw new IllegalArgumentException("Hersteller ist ein Pflichtfeld");
         if (lotNumber == null || lotNumber.isBlank()) throw new IllegalArgumentException("Chargennummer ist ein Pflichtfeld");
         if (vaccinationDate == null) throw new IllegalArgumentException("Impfdatum ist ein Pflichtfeld");

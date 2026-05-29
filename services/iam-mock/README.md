@@ -6,11 +6,11 @@ Simple IAM mock service for development. Issues JWTs via Basic Auth.
 
 | Username   | Password | User-ID | Rolle    |
 |------------|----------|---------|----------|
-| `patient1` | `pass123` | `10001` | patient |
-| `patient2` | `pass123` | `10002` | patient |
-| `patient3` | `pass123` | `10003` | patient |
-| `patient4` | `pass123` | `10004` | patient |
-| `doctor1`  | `pass123` | `20001` | doctor   |
+| `patient1` | `pass123` | `00000000-0000-0000-0000-000000000001` | patient |
+| `patient2` | `pass123` | `00000000-0000-0000-0000-000000000002` | patient |
+| `patient3` | `pass123` | `00000000-0000-0000-0000-000000000003` | patient |
+| `patient4` | `pass123` | `00000000-0000-0000-0000-000000000004` | patient |
+| `doctor1`  | `pass123` | `10000000-0000-0000-0000-000000000001` | doctor  |
 
 ## API
 
@@ -23,7 +23,7 @@ Authorization: Basic base64(username:password)
 ```json
 {
   "token": "eyJhbGciOi...",
-  "userId": "10001",
+  "userId": "00000000-0000-0000-0000-000000000001",
   "role": "patient"
 }
 ```

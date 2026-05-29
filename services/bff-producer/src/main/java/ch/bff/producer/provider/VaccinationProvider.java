@@ -42,6 +42,7 @@ public class VaccinationProvider {
                 new VaccinationDto(
                         UUID.fromString("3fa85f64-5717-4562-b3fc-2c963f66afa6"),
                         "Priorix",
+                        "00000-09",
                         "1/2",
                         LocalDate.of(2020, 1, 22),
                         "GlaxoSmithKline",
@@ -56,6 +57,7 @@ public class VaccinationProvider {
                 new VaccinationDto(
                         UUID.fromString("7b921e12-3456-7890-abcd-ef1234567890"),
                         "Priorix",
+                        "00000-09",
                         "2/2",
                         LocalDate.of(2020, 3, 24),
                         "GlaxoSmithKline",
@@ -70,6 +72,7 @@ public class VaccinationProvider {
                 new VaccinationDto(
                         UUID.fromString("a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d"),
                         "Boostrix",
+                        "00000-01",
                         "1/1",
                         LocalDate.of(2021, 6, 15),
                         "GlaxoSmithKline",
@@ -84,6 +87,7 @@ public class VaccinationProvider {
                 new VaccinationDto(
                         UUID.fromString("f8e7d6c5-b4a3-9281-7065-5443322110aa"),
                         "FSME-Immun",
+                        "00000-04",
                         "1/3",
                         LocalDate.of(2023, 4, 10),
                         "Pfizer",
@@ -98,6 +102,7 @@ public class VaccinationProvider {
                 new VaccinationDto(
                         UUID.fromString("00000000-1111-2222-3333-444455556666"),
                         "Fluarix Tetra",
+                        "00000-06",
                         "1/1",
                         LocalDate.of(2025, 10, 05),
                         "GlaxoSmithKline",

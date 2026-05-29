@@ -44,7 +44,7 @@ public class ImmunizationAdministrationService {
     public VaccinationDto createImmunizationAdministration(
             String patientIamId, ImmunizationCreateDto createDto) {
 
-        var patientUuid = UUID.randomUUID();
+        var patientUuid = UUID.fromString(patientIamId);
         var immunizationUuid = UUID.randomUUID();
         var practitionerUuid = UUID.randomUUID();
         var organizationUuid = UUID.randomUUID();
@@ -106,6 +106,7 @@ public class ImmunizationAdministrationService {
         var vaccineCode = new CodeableConcept();
         vaccineCode.addCoding(new Coding()
                 .setSystem("urn:oid:1.2.3.4.5.6.7")
+                .setCode(dto.vaccineCode())
                 .setDisplay(dto.vaccineName()));
         vaccineCode.setText(dto.vaccineName());
         imm.setVaccineCode(vaccineCode);
@@ -223,6 +224,7 @@ public class ImmunizationAdministrationService {
         return new VaccinationDto(
                 immunizationUuid,
                 dto.vaccineName(),
+                dto.vaccineCode(),
                 dto.doseNumber() + "/" + (dto.seriesDoses() != null ? dto.seriesDoses() : "-"),
                 dto.vaccinationDate(),
                 dto.marketingAuthorizationHolder(),

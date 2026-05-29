@@ -38,6 +38,7 @@ class PractitionerDto:
 class VaccinationDto:
     id: UUID
     vaccine_name: str
+    vaccine_code: str
     dose_sequence: str
     vaccination_date: date
     manufacturer: str
@@ -52,6 +53,8 @@ class VaccinationDto:
             raise ValueError("ID darf nicht null sein")
         if not self.vaccine_name or not self.vaccine_name.strip():
             raise ValueError("Impfstoffname darf nicht leer sein")
+        if not self.vaccine_code or not self.vaccine_code.strip():
+            raise ValueError("Impfstoffcode darf nicht leer sein")
         if not self.dose_sequence or not self.dose_sequence.strip():
             raise ValueError("Dosis-Reihenfolge (z.B. 1/2) darf nicht leer sein")
         if self.vaccination_date is None:
@@ -108,7 +111,7 @@ def _section_has_immunization_loinc(section: dict[str, Any]) -> bool:
 
 
 def _resolve_immunization(
-    section_entry: dict[str, Any], 
+    section_entry: dict[str, Any],
     bundle: dict[str, Any]
 ) -> dict[str, Any] | None:
     """Section entries in a CH VACD Bundle are references like 'Immunization/123'.

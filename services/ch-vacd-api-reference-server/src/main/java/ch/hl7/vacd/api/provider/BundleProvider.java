@@ -259,8 +259,6 @@ public class BundleProvider implements IResourceProvider {
 	// --- ID extraction ---
 
 	private String extractId(Resource resource, Map<Resource, String> fullUrlMap) {
-		return resource.getId();
-		/*
 		String id = resource.getIdElement() != null ? resource.getIdElement().getIdPart() : null;
 		if (id != null && !id.isEmpty()) {
 			return id;
@@ -270,7 +268,6 @@ public class BundleProvider implements IResourceProvider {
 			return fullUrl.substring("urn:uuid:".length());
 		}
 		return UUID.randomUUID().toString();
-		*/
 	}
 
 	// --- Split enriched FLAT JSON by medication_management:X ---

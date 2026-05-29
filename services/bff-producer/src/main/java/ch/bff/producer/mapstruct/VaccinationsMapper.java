@@ -20,6 +20,7 @@ public interface VaccinationsMapper {
 
     @Mapping(target = "id", expression = "java(parseId(immunization))")
     @Mapping(target = "vaccineName", source = "vaccineCode", qualifiedByName = "vaccineName")
+    @Mapping(target = "vaccineCode", source = "vaccineCode", qualifiedByName = "vaccineCode")
     @Mapping(target = "doseSequence", expression = "java(doseSequence(immunization))")
     @Mapping(target = "vaccinationDate", source = "occurrenceDateTimeType", qualifiedByName = "toLocalDate")
     @Mapping(target = "manufacturer", expression = "java(manufacturerName(immunization))")
@@ -37,6 +38,15 @@ public interface VaccinationsMapper {
             return vaccineCode.getCodingFirstRep().getDisplay();
         }
         return vaccineCode.getText();
+    }
+
+    @Named("vaccineCode")
+    default String vaccineCode(CodeableConcept vaccineCode) {
+        if (vaccineCode == null) return null;
+        if (vaccineCode.hasCoding()) {
+            return vaccineCode.getCodingFirstRep().getCode();
+        }
+        return null;
     }
 
     @Named("toLocalDate")
