@@ -3,10 +3,4 @@ progress/
 tmp/
 bin/
 .idea/
-<<<<<<< HEAD
-__pycache__/
-=======
-
-# Local doctor mock testing
-frontends/frontend-producer/src/mock-test-data.js
->>>>>>> e87011a2574f38fb76e0784d55155688854ebb10
+.claude/settings.local.json
