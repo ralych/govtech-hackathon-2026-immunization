@@ -226,6 +226,22 @@ public class BundleProvider implements IResourceProvider {
 		}
 	}
 
+	// --- CreateIfAbsent ---
+
+	private void createIfAbsent(Resource resource, Map<Resource, String> fullUrlMap) {
+		String resourceType = resource.fhirType();
+		String resourceId = extractId(resource, fullUrlMap);
+		List<ResourceEntity> existing = store.findByResourceTypeAndResourceId(resourceType, resourceId);
+		if (existing == null || existing.isEmpty()) {
+			ResourceEntity entity = new ResourceEntity();
+			entity.setResourceType(resourceType);
+			entity.setResourceId(resourceId);
+			entity.setJson(fhirContext.newJsonParser().encodeResourceToString(resource));
+			store.save(entity);
+			log.info("Created absent {} id={}", resourceType, resourceId);
+		}
+	}
+
 	// --- Full URL map building ---
 
 	private Map<Resource, String> buildFullUrlMap(Bundle bundle) {
@@ -337,8 +353,19 @@ public class BundleProvider implements IResourceProvider {
 			validateStatus(immunization);
 		}
 
-		// Build fullUrl map and extract IDs.
+		// CreateIfAbsent for Practitioners, Organizations, and PractitionerRoles.
 		Map<Resource, String> fullUrlMap = buildFullUrlMap(bundle);
+		for (Practitioner practitioner : peeled.practitioners) {
+			createIfAbsent(practitioner, fullUrlMap);
+		}
+		for (Organization organization : peeled.organizations) {
+			createIfAbsent(organization, fullUrlMap);
+		}
+		for (PractitionerRole practitionerRole : peeled.practitionerRoles) {
+			createIfAbsent(practitionerRole, fullUrlMap);
+		}
+
+		// Extract IDs.
 		String patientId = extractId(peeled.patient, fullUrlMap);
 		patientId = patientId.substring("urn:uuid:".length());
 		List<String> practitionerIds = peeled.practitioners.stream()
