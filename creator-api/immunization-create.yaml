@@ -74,6 +74,33 @@ components:
         siteOfAdministration:
           type: string
           example: "Oberarm links"
+        doseNumber:
+          type: string
+          example: "1"
+          description: Die aktuelle Dosisnummer in der Impfserie (z. B. "1", "2"). Bei einer Booster-Impfung kann dieses Feld leer gelassen werden oder "Booster" enthalten.
+        seriesDoses:
+          type: string
+          example: "2"
+          description: Die Gesamtzahl der vorgesehenen Dosen in der Impfserie (z. B. "2", "3"). Bei einer Booster-Impfung kann dieses Feld leer gelassen werden.
+        vaccinationReason:
+          type: object
+          description: Der Grund für die Impfung basierend auf dem Schweizer Risks ValueSet (http://fhir.ch/ig/ch-vacd/ValueSet/ch-vacd-risks-vs)
+          properties:
+            code:
+              type: string
+              example: "223366009"
+              description: Der offizielle SNOMED CT-Code oder Schweizer Risikocode (z. B. "223366009" für berufliche Risikogruppe)
+            display:
+              type: string
+              example: "Healthcare professional"
+              description: Der offizielle Display-Name des Codes
+            swissLabel:
+              type: string
+              example: "Risikogruppe — beruflich"
+              description: Die praxisnahe Bezeichnung auf Deutsch für die Schweizer Benutzeroberfläche
+          required:
+            - code
+            - display
       required:
         - id
         - targetDisease

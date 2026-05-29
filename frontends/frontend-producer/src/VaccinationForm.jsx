@@ -15,7 +15,7 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
     amount: "0.5",
     unit: "ml",
     site: "Oberarm links (M. deltoideus)",
-    reason: "Grundimmunisierung",
+    reason: "373068000",
     doseNumber: "",
     doseTotal: "",
     hasAdverse: false,
@@ -48,6 +48,7 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
       const seriesDoses = form.doseTotal ? parseInt(form.doseTotal, 10) : null;
       const amountVal = parseFloat(form.amount) || 0;
 
+      const selectedReason = reasons.find(r => r.code === form.reason) || reasons[0];
       const payload = {
         vaccineName: form.vaccine,
         marketingAuthorizationHolder: form.manufacturer,
@@ -57,7 +58,11 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
         routeOfAdministration: DataService.routeToApi(form.route),
         administeredDose: { value: amountVal, unit: form.unit },
         siteOfAdministration: form.site,
-        reason: form.reason,
+        vaccinationReason: {
+          code: selectedReason.code,
+          display: selectedReason.display,
+          swissLabel: selectedReason.swissLabel
+        },
         doseNumber: doseNum,
         seriesDoses: seriesDoses,
         adverseReactionObserved: form.hasAdverse,
@@ -177,7 +182,7 @@ function VaccinationForm({ patient, onCancel, onVaccinationCreated }) {
             <div className="grid-2">
               <Field label="Impfgrund" required>
                 <select className="select" value={form.reason} onChange={(e) => set("reason", e.target.value)}>
-                  {reasons.map((r) => <option key={r}>{r}</option>)}
+                  {reasons.map((r) => <option key={r.code} value={r.code}>{r.swissLabel}</option>)}
                 </select>
               </Field>
 

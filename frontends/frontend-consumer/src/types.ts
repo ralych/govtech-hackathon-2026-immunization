@@ -1,39 +1,34 @@
-// Domain contracts for the Impfdossier mobile app.
+// Domain contracts for the Impfdossier mobile app (aligned with OpenAPI)
 
-export type Relation = 'self' | 'son' | 'daughter';
-
-export type Sex = 'M' | 'F';
-
-/** A single administered vaccination dose. Mirrors the Swiss Impfausweis / FHIR Immunization shape. */
-export interface Vaccination {
-  readonly id: string;
-  /** Target disease(s), e.g. "Masern, Mumps, Röteln". Used to group entries. */
-  readonly disease: string;
-  /** Trade name of the administered product, e.g. "Priorix". */
-  readonly vaccine: string;
-  /** ISO date (yyyy-mm-dd) the dose was given. */
-  readonly date: string;
-  /** Dose label within a series, e.g. "1/3" or "Booster". */
-  readonly dose: string;
-  readonly manufacturer: string;
-  readonly batch: string;
-  /** Route of administration, e.g. "i.m.". */
-  readonly route: string;
-  /** Anatomical site, e.g. "Oberarm links". */
-  readonly site: string;
-  readonly note?: string;
+/** A single administered vaccination dose matching VaccinationDto from the OpenAPI spec. */
+export interface VaccinationReason {
+  readonly code: string;
+  readonly display: string;
+  readonly swissLabel: string;
 }
 
-/** A person whose vaccination record can be viewed in the app. */
-export interface FamilyMember {
+export interface Vaccination {
   readonly id: string;
+  readonly disease: string;      // targetDisease
+  readonly vaccine: string;      // vaccineName
+  readonly date: string;         // vaccinationDate
+  readonly dose: string;         // doseSequence
+  readonly doseNumber?: string;   // doseNumber
+  readonly seriesDoses?: string;  // seriesDoses
+  readonly vaccinationReason?: VaccinationReason; // vaccinationReason structured
+  readonly manufacturer: string;
+  readonly batch: string;        // lotNumber
+  readonly route: string;        // administrationRoute
+  readonly site: string;         // siteOfAdministration
+  readonly season?: string;      // season (optional)
+}
+
+/** The complete patient dossier matching PatientDossierDto from the OpenAPI spec. */
+export interface PatientDossier {
   readonly firstName: string;
   readonly lastName: string;
-  /** ISO date of birth (yyyy-mm-dd). */
-  readonly dob: string;
-  readonly sex: Sex;
-  /** Relationship to the account holder. Drives the switcher label. */
-  readonly relation: Relation;
+  readonly age: number;
+  readonly gender: string;
   readonly vaccinations: readonly Vaccination[];
 }
 
@@ -43,3 +38,4 @@ export interface DiseaseGroup {
   readonly entries: readonly Vaccination[];
   readonly latest: string;
 }
+

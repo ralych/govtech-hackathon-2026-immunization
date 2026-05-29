@@ -169,6 +169,11 @@ function VaccinationGroup({ group, justAddedId }) {
                   <span>{r.site}</span>
                   {r.note && <><span className="dot">·</span><span>{r.note}</span></>}
                 </div>
+                {r.vaccinationReason && (
+                  <div className="vax-entry-meta-row reason" style={{ fontStyle: 'italic', color: 'var(--primary)', marginTop: 4 }}>
+                    Impfgrund: {r.vaccinationReason.swissLabel || r.vaccinationReason.display || r.vaccinationReason}
+                  </div>
+                )}
               </div>
               <div className="vax-entry-side">
                 <div className="vax-entry-doc">{r.practitioner?.doctorName || 'Dr. S. Müller'}</div>
