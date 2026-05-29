@@ -8,34 +8,37 @@ As of a principle of a FHIR Facade Server.
 ## Basics
 
 ### Framework
-It is setup as a spring-boot service with resource providers (HAPI FHIR) to server the resources as they will be usefull in the context of the immunization.
+
+It is setup as a spring-boot service with resource providers (HAPI FHIR) to serve the resources as they will be useful in the context of the immunization.
 
 ### Storage
+
 There is a primitive resource storage defined using an sql database via spring-data/JPA.
 
 ### Validation
+
 There is not yet an fhir validation configured.
 
 ### OpenAPI/Swagger-UI
+
 There is an openapi/swagger-ui added to have a simple test possibility
 
 ### Security
-There is no security layer implemented. So everybody can access the API.
 
+There is no security layer implemented. So everybody can access the API.
 
 ## Usage
 
-You can start it with maven 
+You can start it with maven
 
 	./mvnw spring-boot:run
 
-or directly with java 
+or directly with java
 
 	java -jar ch-vacd-api-reference-server-1.0.0-SNAPSHOT.jar
-	
-or use it as Docker Container
-	
-	see Docker/readme.md
-	
 
-	
+or use it as Docker Container
+
+	see Docker/readme.md
+
+

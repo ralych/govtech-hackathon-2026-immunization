@@ -11,41 +11,53 @@ import ca.uhn.fhir.rest.annotation.Update;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.param.StringParam;
-import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ch.hl7.vacd.api.repo.ResourceRepository;
+import ch.hl7.vacd.api.client.EhrbaseClient;
 import ch.hl7.vacd.api.entity.ResourceEntity;
 
 import org.hl7.fhir.instance.model.api.IIdType;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class PatientProvider implements IResourceProvider {
 
 	private final FhirContext fhirContext;
 	private final ResourceRepository store;
+	private final EhrbaseClient ehrbaseClient;
+	private static final Logger log = LoggerFactory.getLogger(PatientProvider.class);
 
-	public PatientProvider(FhirContext fhirContext, ResourceRepository store) {
+	public PatientProvider(FhirContext fhirContext, ResourceRepository store, EhrbaseClient ehrbaseClient) {
 		this.fhirContext = fhirContext;
 		this.store = store;
+		this.ehrbaseClient = ehrbaseClient;
 	}
 
 	@Create
 	public MethodOutcome create(@ResourceParam Patient patient) {
 		String type = patient.fhirType();
+		String json = fhirContext.newJsonParser().encodeResourceToString(patient);
 		String id = patient.getIdElement() != null && patient.getIdElement().hasIdPart()
 				? patient.getIdElement().getIdPart()
-				: java.util.UUID.randomUUID().toString();
+				: UUID.randomUUID().toString();
 		patient.setId(type + "/" + id);
-		String json = fhirContext.newJsonParser().encodeResourceToString(patient);
+		String ehrId = ehrbaseClient.findOrCreateEhr(id);
+		patient.addIdentifier()
+			.setSystem("urn:che:epr:ch-vacd:ehr-id")
+			.setValue("urn:uuid:" + ehrId);
+		json = fhirContext.newJsonParser().encodeResourceToString(patient);
 
 		ResourceEntity entity = new ResourceEntity();
 		entity.setResourceType(type);
@@ -63,6 +75,10 @@ public class PatientProvider implements IResourceProvider {
 	public MethodOutcome update(@IdParam IdType id, @ResourceParam Patient resource) {
 		String type = resource.fhirType();
 		String idPart = id.getIdPart();
+		String ehrId = ehrbaseClient.findOrCreateEhr(idPart);
+		resource.addIdentifier()
+			.setSystem("urn:che:epr:ch-vacd:ehr-id")
+			.setValue("urn:uuid:" + ehrId);
 		String json = fhirContext.newJsonParser().encodeResourceToString(resource);
 		List<ResourceEntity> found = store.findByResourceTypeAndResourceId(type, idPart);
 		ResourceEntity entity;
@@ -75,7 +91,7 @@ public class PatientProvider implements IResourceProvider {
 			entity.setResourceId(
 					idPart == null || idPart.isEmpty()
 							? (resource.getIdElement() != null ? resource.getIdElement().getIdPart()
-									: java.util.UUID.randomUUID().toString())
+									: UUID.randomUUID().toString())
 							: idPart);
 			entity.setJson(json);
 		}
@@ -90,10 +106,9 @@ public class PatientProvider implements IResourceProvider {
 
 	@Read
 	public Patient read(@IdParam IdType theId) {
-		java.util.List<ResourceEntity> found = store.findByResourceTypeAndResourceId("Patient", theId.getIdPart());
+		List<ResourceEntity> found = store.findByResourceTypeAndResourceId("Patient", theId.getIdPart());
 		if (found != null && !found.isEmpty()) {
-			org.hl7.fhir.instance.model.api.IBaseResource r = (org.hl7.fhir.instance.model.api.IBaseResource) fhirContext
-					.newJsonParser().parseResource(found.get(0).getJson());
+			IBaseResource r = (IBaseResource) fhirContext.newJsonParser().parseResource(found.get(0).getJson());
 			if (r != null)
 				return (Patient) r;
 		}
@@ -105,7 +120,24 @@ public class PatientProvider implements IResourceProvider {
 
 	@Search
 	public List<Patient> search(@OptionalParam(name = "name") StringParam name) {
-		java.util.List<ResourceEntity> stored = store.findByResourceType("Patient");
+		List<ResourceEntity> stored = store.findByResourceType("Patient").stream()
+				.filter(e -> {
+					if (name == null || name.isEmpty()) return true;
+					try {
+						IBaseResource r = fhirContext.newJsonParser().parseResource(e.getJson());
+						if (r instanceof Patient) {
+							Patient p = (Patient) r;
+							return p.getName().stream()
+									.anyMatch(n -> n.getFamily().equalsIgnoreCase(name.getValue())
+											|| n.getGiven().stream()
+													.anyMatch(g -> g.getValue().equalsIgnoreCase(name.getValue())));
+						}
+					} catch (Exception ex) {
+						return false;
+					}
+					return false;
+				})
+				.toList();
 		List<Patient> out = new ArrayList<>();
 		for (ResourceEntity e : stored) {
 			out.add((Patient) fhirContext.newJsonParser().parseResource(e.getJson()));
@@ -131,7 +163,6 @@ public class PatientProvider implements IResourceProvider {
 		} else {
 			throw new IllegalArgumentException("Unsupported type code!");
 		}
-
 	}
 
 	@Override

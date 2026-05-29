@@ -34,3 +34,14 @@ fhir:
       classpath:/packages/ch-vacd_6.0.0.tgz,
       classpath:/packages/ch-core_6.0.0.tgz,
       classpath:/packages/ch-term_3.3.0.tgz
+
+# EHRbase CDR connection
+ehrbase:
+  url: ${CDR_URL:http://ehrbase:8080/ehrbase/rest/openehr/v1}
+  user: ${CDR_USER:ehrbase-user}
+  password: ${CDR_PASS:SuperSecretPassword}
+
+# openFHIR mapping engine
+openfhir:
+  url: ${MAPPER_URL:http://openfhir:8083}
+  template-id: ${OPENFHIR_TEMPLATE_ID:ch-vacd-immunization administration.v1-alpha}
