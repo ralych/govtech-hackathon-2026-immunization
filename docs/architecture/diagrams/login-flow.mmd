@@ -1,0 +1,28 @@
+sequenceDiagram
+    autonumber
+    participant B as Browser
+    participant NX as Nginx (login-frontend)
+    participant LF as Login Page
+    participant IAM as IAM Mock
+
+    B->>NX: GET /
+    NX->>LF: Serve login.html
+    LF-->>B: Login Form
+
+    B->>NX: POST /api/authenticate<br/>(Basic Auth)
+    NX->>IAM: POST /authenticate<br/>(Basic Auth)
+    Note over IAM: Validate credentials<br/>Issue JWT (sub, role, exp)
+    IAM-->>NX: { token, userId, role }
+    NX-->>B: { token, userId, role }
+
+    Note over B: Store JWT in sessionStorage
+
+    alt Role = doctor
+        B->>NX: GET /producer/
+        Note over NX: Proxy to producer-frontend:80
+        NX-->>B: Producer Frontend SPA
+    else Role = patient
+        B->>NX: GET /consumer/
+        Note over NX: Proxy to consumer-frontend:80
+        NX-->>B: Consumer Frontend SPA
+    end

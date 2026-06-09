@@ -1,0 +1,54 @@
+graph TD
+    classDef client fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef gateway fill:#fff8e1,stroke:#f57f17,stroke-width:2px;
+    classDef frontend fill:#bbdefb,stroke:#1565c0,stroke-width:2px;
+    classDef iam fill:#fce4ec,stroke:#c62828,stroke-width:2px;
+    classDef bff fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    classDef core fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px;
+    classDef db fill:#f3e5f5,stroke:#4a148c,stroke-width:2px;
+
+    subgraph Client Layer
+        B[Browser<br>localhost:3003]:::client
+    end
+
+    subgraph Gateway Layer
+        NX[Nginx Reverse Proxy<br>login-frontend<br>Single Entry Point]:::gateway
+    end
+
+    subgraph Frontend Layer
+        LF[Login Page<br>Static HTML]:::frontend
+        PF[Producer Frontend<br>Arzt Cockpit]:::frontend
+        CF[Consumer Frontend<br>Impfpass]:::frontend
+    end
+
+    subgraph IAM Layer
+        IAM[IAM Mock<br>JWT Auth Service]:::iam
+    end
+
+    subgraph BFF Layer
+        BFF_P[BFF Producer<br>Spring Boot]:::bff
+        BFF_C[BFF Consumer<br>FastAPI]:::bff
+    end
+
+    subgraph Orchestrator Layer
+        FAS[FHIR API Service<br>Payload-Splitting<br>& Aggregation]:::core
+    end
+
+    subgraph Storage Layer
+        FDB[(FHIR DB<br>Postgres<br>Personal Data)]:::db
+        OES[openEHR System<br>EHRbase<br>Clinical Data]:::core
+        ODB[(openEHR DB<br>Postgres<br>Medical Data)]:::db
+    end
+
+    B -->|:3003| NX
+    NX -->|GET /| LF
+    NX -->|POST /api/authenticate| IAM
+    NX -->|/producer/*| PF
+    NX -->|/consumer/*| CF
+    NX -->|/api/bff-producer/*| BFF_P
+    NX -->|/api/bff-consumer/*| BFF_C
+    BFF_P -->|Forward + JWT| FAS
+    BFF_C -->|Forward + JWT| FAS
+    FAS -->|Personal Data| FDB
+    FAS -->|Medical Data| OES
+    OES -->|Store/Retrieve| ODB

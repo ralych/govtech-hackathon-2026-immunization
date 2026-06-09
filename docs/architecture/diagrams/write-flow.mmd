@@ -1,0 +1,29 @@
+sequenceDiagram
+    autonumber
+    participant PF as Producer Frontend
+    participant NX as Nginx (login-frontend)
+    participant BFF as BFF Producer
+    participant FAS as FHIR API Service
+    participant FDB as FHIR Database
+    participant OE as openEHR System
+
+    PF->>NX: POST /api/bff-producer/immunizations<br/>(Bearer JWT)
+    Note over NX: Proxy to bff-producer-server
+    NX->>BFF: Forward + Auth Header
+    Note over BFF: Validate JWT &<br/>extract user info
+
+    BFF->>FAS: Data + User Context
+    Note over FAS: Split payload into:<br/>1. Personal Data<br/>2. Medical Data
+
+    par Store Personal Data
+        FAS->>FDB: Save Personal Data
+        FDB-->>FAS: Confirmation
+    and Store Medical Data
+        FAS->>OE: Send Medical Data
+        Note over OE: Store in openEHR DB
+        OE-->>FAS: openEHR ID
+    end
+
+    FAS-->>BFF: 200 OK
+    BFF-->>NX: 200 OK
+    NX-->>PF: 200 OK

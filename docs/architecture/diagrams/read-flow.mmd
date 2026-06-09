@@ -1,0 +1,26 @@
+sequenceDiagram
+    autonumber
+    participant CF as Consumer Frontend
+    participant NX as Nginx (login-frontend)
+    participant BFF as BFF Consumer
+    participant FAS as FHIR API Service
+    participant FDB as FHIR Database
+    participant OE as openEHR System
+
+    CF->>NX: GET /api/bff-consumer/patients/{id}<br/>(Bearer JWT)
+    Note over NX: Proxy to bff-consumer
+    NX->>BFF: Forward + Auth Header
+    Note over BFF: Validate JWT &<br/>extract user info
+
+    BFF->>FAS: GET Request (Patient ID)
+    FAS->>FDB: Search by Patient ID
+    Note over FDB: Locate patient record
+    FDB-->>FAS: Personal Data & openEHR ID
+
+    FAS->>OE: GET Medical Data (by openEHR ID)
+    OE-->>FAS: Medical Data
+
+    Note over FAS: Aggregate Personal<br/>& Medical Data
+    FAS-->>BFF: Aggregated Payload
+    BFF-->>NX: Aggregated Payload
+    NX-->>CF: Aggregated Payload
