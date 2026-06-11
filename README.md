@@ -98,7 +98,7 @@ Canonical test Bundles live under [`examples/`](examples/).
 docker-compose.yml                  the backing services above
 Makefile                            handy targets: `make restart`, `make log`
 services/
-  ch-vacd-api-reference-server/     HAPI FHIR + CH VACD ResourceProviders
+  ch-vacd-api-reference-server/     HAPI FHIR + CH VACD ResourceProviders (from https://github.com/ralych)
   bff-producer/                     producer-side BFF (Java/Spring)
   bff-consumer/                     consumer-side BFF (FastAPI) — patient dossier + vaccinations
   iam-mock/                         minimal IAM stub issuing JWTs for the frontends
