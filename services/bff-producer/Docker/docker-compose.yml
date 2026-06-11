@@ -1,0 +1,11 @@
+services:
+  bff-producer-server:
+    # build: .
+    image: bff-producer-server:latest
+    container_name: bff-producer-server
+    restart: on-failure
+    ports:
+      - "9112:9112"
+    volumes:
+      - ./config:/config
+

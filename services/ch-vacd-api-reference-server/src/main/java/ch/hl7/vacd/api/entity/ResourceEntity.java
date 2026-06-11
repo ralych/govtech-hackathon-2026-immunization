@@ -26,7 +26,7 @@ public class ResourceEntity {
 
     @Column(name = "resource_id")
     private String resourceId;
-    
+
     @Column(name = "version")
     private int version = 1;
 
@@ -80,7 +80,7 @@ public class ResourceEntity {
 	public void setVersion(int version) {
 		this.version = version;
 	}
-	
+
 	@PreUpdate
 	public void onUpdate() {
 		this.version++;

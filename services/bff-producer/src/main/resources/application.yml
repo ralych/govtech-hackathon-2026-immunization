@@ -1,0 +1,6 @@
+server:
+  port: 9112
+  servlet.context-path: /bff-producer-server
+
+spring:
+  application.name: bff-producer-server

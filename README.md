@@ -27,16 +27,38 @@ openEHR Clinical Data Repository — that's the challenge, not the harness.
    `vacd-net` bridge with the compose services, so service-name URLs
    resolve directly on macOS/Windows/Linux.
 
+## Common commands
+
+A small `Makefile` wraps the most-used compose calls. Run `make` (or
+`make help`) for the list:
+
+| Target         | What it does                                          |
+| ---            | ---                                                   |
+| `make restart` | `docker compose down && build && up --wait`           |
+| `make log`     | `docker compose logs -f` — follow logs of all services |
+| `make help`    | print the target list                                 |
+
+Plain `docker compose ...` of course still works — the targets are just
+shortcuts.
+
+
 ## What you get
 
-| Service          | Port  | Image / build                                       | Notes |
-| ---              | ---   | ---                                                 | --- |
-| `fhir-server-1`  | 9111  | `services/ch-vacd-api-reference-server/` (HAPI 8.8.1, Spring Boot, H2) | CH VACD reference server with the 18 CH VACD `ResourceProvider`s and the `$export-document` Operation. |
-| `fhir-server-2`  | 9112  | same image, second JVM                              | Optional, commented out in `docker-compose.yml`. Enable for producer/consumer split topologies. |
-| `ehrbase`        | 8082  | `ehrbase/ehrbase:2.31.0`                            | openEHR CDR. BASIC auth: `ehrbase-user` / `SuperSecretPassword`. |
-| `ehrbase-db`     | —     | `ehrbase/ehrbase-v2-postgres:16.2`                  | Postgres for EHRbase. Internal-only. |
-| `openfhir`       | 8083  | `openfhir/openfhir:2.2.3` (`linux/amd64`)           | FHIR ⇄ openEHR mapping engine. |
-| `openfhir-mongo` | —     | `mongo:7.0`                                         | openFHIR's config store. Internal-only. |
+NAME                       PORTS
+vacd-bff-consumer          0.0.0.0:8001->8001/tcp, [::]:8001->8001/tcp
+vacd-bff-producer-server   0.0.0.0:9112->9112/tcp, [::]:9112->9112/tcp
+vacd-consumer-frontend     0.0.0.0:3004->80/tcp, [::]:3004->80/tcp
+vacd-ehrbase               0.0.0.0:8082->8080/tcp, [::]:8082->8080/tcp
+vacd-ehrbase-db            5432/tcp
+vacd-fhir-db               5432/tcp
+vacd-fhir-server-1         0.0.0.0:9111->9111/tcp, [::]:9111->9111/tcp
+vacd-iam-mock              0.0.0.0:9090->8080/tcp, [::]:9090->8080/tcp
+vacd-login-frontend        0.0.0.0:3003->80/tcp, [::]:3003->80/tcp
+vacd-openfhir              8080/tcp, 0.0.0.0:8083->8083/tcp, [::]:8083->8083/tcp
+vacd-openfhir-mongo        27017/tcp
+vacd-platform-example      0.0.0.0:8888->8888/tcp, [::]:8888->8888/tcp
+vacd-producer-frontend     0.0.0.0:3002->80/tcp, [::]:3002->80/tcp
+
 
 Connection URLs are exported to the dev container as `FHIR_SERVER_1_URL`,
 `FHIR_SERVER_2_URL`, `CDR_URL`, `MAPPER_URL` (see
@@ -72,15 +94,26 @@ Canonical test Bundles live under [`examples/`](examples/).
 ## Repo layout
 
 ```
-.devcontainer/         dev container config + post-create.sh
-docker-compose.yml     the backing services above
+.devcontainer/                      dev container config + post-create.sh
+docker-compose.yml                  the backing services above
+Makefile                            handy targets: `make restart`, `make log`
 services/
-  ch-vacd-api-reference-server/          HAPI FHIR + CH VACD ResourceProviders (from https://github.com/ralych)
-  platform-business-logic-example/       harness smoke-test (Kotlin/Ktor, not a template)
-examples/              canonical CH VACD example Bundles
+  ch-vacd-api-reference-server/     HAPI FHIR + CH VACD ResourceProviders (from https://github.com/ralych)
+  bff-producer/                     producer-side BFF (Java/Spring)
+  bff-consumer/                     consumer-side BFF (FastAPI) — patient dossier + vaccinations
+  iam-mock/                         minimal IAM stub issuing JWTs for the frontends
+  platform-business-logic-example/  harness smoke-test (Kotlin/Ktor, not a template)
+frontends/
+  login/                            login frontend
+  frontend-producer/                doctor (Arzt) frontend
+  frontend-consumer/                patient frontend
+examples/                           canonical CH VACD example Bundles + round-trip script
 docs/
-  challenge/           original hackathon brief + openEHR template
-  demo/                rendered PDF and screenshots of the example platform
-progress/              branch-scoped chronological progress notes
+  api/                              OpenAPI specs for the BFF endpoints
+  architecture/                     architecture diagrams + notes
+  challenge/                        original hackathon brief + openEHR template
+  demo/                             rendered PDF and screenshots of the example platform
+  backend_for_frontend_consumer.md  consumer BFF design notes
+progress/                           branch-scoped chronological progress notes
 ```
 

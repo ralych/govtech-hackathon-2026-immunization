@@ -1,0 +1,22 @@
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+
+# Local-only dev convenience (activates file-backed H2 if spring.profiles.active=dev)
+application-dev.yaml
+db/
+
+# Docker/CI
+Dockerfile
+.dockerignore
+doc/
+Docker/

@@ -7,6 +7,7 @@ import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.interceptor.RequestValidatingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseValidatingInterceptor;
 import ca.uhn.fhir.validation.ResultSeverityEnum;
+import ch.hl7.vacd.api.provider.VaccinationProvider;
 import ca.uhn.fhir.rest.openapi.OpenApiInterceptor;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import jakarta.servlet.Servlet;
@@ -21,16 +22,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 @Configuration
 public class FhirServletConfig {
-	
+
 	private Logger loggger = LoggerFactory.getLogger(FhirServletConfig.class);
 
 	@Value("${fhir.providers:}")
 	private List<String> resourceProviderClassNames;
-	
+
 	@Value(value = "${fhir.ig.files}")
 	private List<String> igFiles;
 
@@ -65,7 +67,8 @@ public class FhirServletConfig {
 
 	@Bean
 	public ServletRegistrationBean<Servlet> fhirServlet(FhirContext fhirContext,
-			java.util.Collection<IResourceProvider> providers) {
+			Collection<IResourceProvider> providers,
+			VaccinationProvider vaccinationProvider) {
 		RestfulServer server = new RestfulServer(fhirContext);
 		// Register all discovered resource providers
 		if (resourceProviderClassNames.isEmpty()) {
@@ -80,7 +83,10 @@ public class FhirServletConfig {
 			});
 			server.setResourceProviders(filteredProviders);
 		}
-		
+
+		// Register plain providers (non-IResourceProvider) for custom operations.
+		server.registerProviders(vaccinationProvider);
+
 		RequestValidatingInterceptor reqValidatorInterceptor = new RequestValidatingInterceptor();
 		reqValidatorInterceptor.setFailOnSeverity(ResultSeverityEnum.ERROR);
 //		reqValidatorInterceptor.setAddResponseHeaderOnSeverity(ResultSeverityEnum.WARNING);
@@ -90,7 +96,6 @@ public class FhirServletConfig {
 		resValidatorInterceptor.setFailOnSeverity(ResultSeverityEnum.ERROR);
 //		resValidatorInterceptor.setAddResponseHeaderOnSeverity(ResultSeverityEnum.WARNING);
 		server.registerInterceptor(resValidatorInterceptor);
-		
 
 		// Try to register the HAPI OpenAPI interceptor if present on the classpath
 		try {

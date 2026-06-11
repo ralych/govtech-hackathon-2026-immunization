@@ -17,6 +17,25 @@
 name: vacd-hackathon
 
 services:
+  # BFF producer server
+  # Multi-stage build: Maven runs inside Docker, no local mvn/java prereqs.
+  # Postgres-backed (fhir-db) for persistence across restarts.
+  bff-producer-server:
+    build:
+      context: ./services/bff-producer
+    image: vacd/bff-producer-server:dev
+    container_name: vacd-bff-producer-server
+    environment:
+      FHIR_BASE_URL: "http://fhir-server-1:9111/ch-vacd-api-reference-server/fhir"
+    ports:
+      - "9112:9112"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9112/bff-producer-server/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 12
+
   # CH VACD FHIR API reference server — instance 1.
   # Multi-stage build: Maven runs inside Docker, no local mvn/java prereqs.
   # Postgres-backed (fhir-db) for persistence across restarts.
@@ -209,6 +228,26 @@ services:
       start_period: 30s
       retries: 12
 
+  # Consumer BFF (FastAPI). Reads CH VACD Immunizations from fhir-server-1
+  bff-consumer:
+    build:
+      context: ./services/bff-consumer
+    image: vacd/bff-consumer:dev
+    container_name: vacd-bff-consumer
+    depends_on:
+      fhir-server-1:
+        condition: service_healthy
+    environment:
+      FHIR_BASE_URL: "http://fhir-server-1:9111/ch-vacd-api-reference-server/fhir"
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys,json; sys.exit(0 if json.loads(urllib.request.urlopen('http://localhost:8001/healthz').read())['ok'] else 1)\""]
+      interval: 10s
+      timeout: 5s
+      start_period: 15s
+      retries: 12
+
   # Mongo for openFHIR. Internal-only (port 27017 not published). openFHIR
   # is the only client of this Mongo instance, so we skip the usual
   # init-mongo.js-creates-a-restricted-user dance and let openFHIR connect
@@ -229,6 +268,56 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
+
+  # IAM Mock — simple authentication service for development.
+  # Provides 5 mock users (4 patient, 1 doctor) and issues JWTs.
+  iam-mock:
+    build:
+      context: ./services/iam-mock
+    image: vacd/iam-mock:dev
+    container_name: vacd-iam-mock
+    ports:
+      - "9090:8080"
+    healthcheck:
+      test: python -c "import http.client; c=http.client.HTTPConnection('localhost',8080); c.request('POST','/authenticate'); assert c.getresponse().status==401"
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 6
+
+  # Login Frontend
+  login-frontend:
+    build:
+      context: ./frontends/login
+    container_name: vacd-login-frontend
+    depends_on:
+      bff-consumer:
+        condition: service_healthy
+      producer-frontend:
+        condition: service_started
+      consumer-frontend:
+        condition: service_started
+    ports:
+      - "3003:80"
+
+  # Producer (Arzt Frontend)
+  producer-frontend:
+    build:
+      context: ./frontends/frontend-producer
+    container_name: vacd-producer-frontend
+    ports:
+      - "3002:80"
+
+  # Consumer (Patient Frontend)
+  consumer-frontend:
+    build:
+      context: ./frontends/frontend-consumer
+    container_name: vacd-consumer-frontend
+    depends_on:
+      bff-consumer:
+        condition: service_healthy
+    ports:
+      - "3004:80"
 
 # All backing services join `vacd-net`, an external user-defined bridge that
 # the dev container also joins (via `--network=vacd-net` in

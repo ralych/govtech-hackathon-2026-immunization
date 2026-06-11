@@ -1,0 +1,40 @@
+### Erfasse eine neue Impfung (Grundimmunisierung Dosis 2/3)
+POST http://localhost:3003/api/bff-producer/immunizations?personId=3fa85f64-5717-4562-b3fc-2c963f66afa6
+##POST http://localhost:{{port}}/bff-producer-server/api/immunizations?personId=3fa85f64-5717-4562-b3fc-2c963f66afa6
+Content-Type: application/json
+Authorization: Bearer {{authTokenDoctor}}
+
+{
+  "vaccineName": "Boostrix Polio",
+  "marketingAuthorizationHolder": "GlaxoSmithKline",
+  "lotNumber": "A1B2C3",
+  "expiryDate": "2029-12-31",
+  "vaccinationDate": "2026-05-28",
+  "routeOfAdministration": "IM",
+  "administeredDose": {
+    "value": 0.5,
+    "unit": "ml"
+  },
+  "siteOfAdministration": "Oberarm links (M. deltoideus)",
+  "vaccinationReason": {
+    "code": "Z100",
+    "display": "Routine Immunization"
+  },
+  "doseNumber": 2,
+  "seriesDoses": 3,
+  "adverseReactionObserved": false
+}
+
+> {%
+    // Integrationstest direkt im HTTP-Client
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 201, "Response status is not 21 Created");
+    });
+
+    client.test("Response contains generated ID", function() {
+        client.assert(response.body.hasOwnProperty("id"), "Missing 'id' in response");
+        client.log("Generated Vaccination ID: " + response.body.id);
+    });
+%}
+
+###
