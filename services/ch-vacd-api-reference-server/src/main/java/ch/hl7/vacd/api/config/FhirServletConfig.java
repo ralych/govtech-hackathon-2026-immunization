@@ -8,7 +8,6 @@ import ca.uhn.fhir.rest.server.interceptor.RequestValidatingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseValidatingInterceptor;
 import ca.uhn.fhir.validation.ResultSeverityEnum;
 import ch.hl7.vacd.api.provider.VaccinationProvider;
-import ca.uhn.fhir.rest.openapi.OpenApiInterceptor;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import jakarta.servlet.Servlet;
 
@@ -99,8 +98,13 @@ public class FhirServletConfig {
 
 		// Try to register the HAPI OpenAPI interceptor if present on the classpath
 		try {
-			OpenApiInterceptor openApiInterceptor = new OpenApiInterceptor();
-			server.registerInterceptor(openApiInterceptor);
+//			OpenApiInterceptor openApiInterceptor = new OpenApiInterceptor();
+//			server.registerInterceptor(openApiInterceptor);
+			ChVacdOpenApiInterceptor openApiInterCept = new ChVacdOpenApiInterceptor();
+			openApiInterCept.setUseResourcePages(true);
+			server.registerInterceptor(openApiInterCept);
+			
+			
 		} catch (Exception ignored) {
 			// ignore - openapi support is optional
 			System.out

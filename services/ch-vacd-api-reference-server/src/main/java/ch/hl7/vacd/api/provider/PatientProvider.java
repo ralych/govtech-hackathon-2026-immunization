@@ -13,6 +13,7 @@ import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ch.hl7.vacd.api.repo.ResourceRepository;
+import ch.hl7.vacd.api.business.PatientBusinessService;
 import ch.hl7.vacd.api.client.EhrbaseClient;
 import ch.hl7.vacd.api.entity.ResourceEntity;
 
@@ -23,6 +24,7 @@ import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -32,118 +34,56 @@ import java.util.UUID;
 @Component
 public class PatientProvider implements IResourceProvider {
 
+	
+	@Autowired
+	public PatientBusinessService patientBusinessService;
+	
 	private final FhirContext fhirContext;
-	private final ResourceRepository store;
-	private final EhrbaseClient ehrbaseClient;
+//	private final ResourceRepository store;
+//	private final EhrbaseClient ehrbaseClient;
 
-	public PatientProvider(FhirContext fhirContext, ResourceRepository store, EhrbaseClient ehrbaseClient) {
+	public PatientProvider(FhirContext fhirContext/*, ResourceRepository store, EhrbaseClient ehrbaseClient*/) {
 		this.fhirContext = fhirContext;
-		this.store = store;
-		this.ehrbaseClient = ehrbaseClient;
+//		this.store = store;
+//		this.ehrbaseClient = ehrbaseClient;
 	}
 
 	@Create
 	public MethodOutcome create(@ResourceParam Patient patient) {
-		String type = patient.fhirType();
-		String json = fhirContext.newJsonParser().encodeResourceToString(patient);
-		String id = patient.getIdElement() != null && patient.getIdElement().hasIdPart()
-				? patient.getIdElement().getIdPart()
-				: UUID.randomUUID().toString();
-		patient.setId(type + "/" + id);
-		String ehrId = ehrbaseClient.findOrCreateEhr(id);
-		patient.addIdentifier()
-			.setSystem("urn:che:epr:ch-vacd:ehr-id")
-			.setValue("urn:uuid:" + ehrId);
-		json = fhirContext.newJsonParser().encodeResourceToString(patient);
-
-		ResourceEntity entity = new ResourceEntity();
-		entity.setResourceType(type);
-		entity.setResourceId(id);
-		entity.setJson(json);
-		store.save(entity);
+		
+		Patient createdPatient = patientBusinessService.createPatient(patient);
 
 		MethodOutcome outcome = new MethodOutcome();
-		outcome.setId(new IdType("Patient", id));
+		outcome.setId(new IdType("Patient", createdPatient.getId()));
 		outcome.setResource(patient);
 		return outcome;
 	}
 
 	@Update
-	public MethodOutcome update(@IdParam IdType id, @ResourceParam Patient resource) {
-		String type = resource.fhirType();
-		String idPart = id.getIdPart();
-		String ehrId = ehrbaseClient.findOrCreateEhr(idPart);
-		resource.addIdentifier()
-			.setSystem("urn:che:epr:ch-vacd:ehr-id")
-			.setValue("urn:uuid:" + ehrId);
-		String json = fhirContext.newJsonParser().encodeResourceToString(resource);
-		List<ResourceEntity> found = store.findByResourceTypeAndResourceId(type, idPart);
-		ResourceEntity entity;
-		if (found != null && !found.isEmpty()) {
-			entity = found.get(0);
-			entity.setJson(json);
-		} else {
-			entity = new ResourceEntity();
-			entity.setResourceType(type);
-			entity.setResourceId(
-					idPart == null || idPart.isEmpty()
-							? (resource.getIdElement() != null ? resource.getIdElement().getIdPart()
-									: UUID.randomUUID().toString())
-							: idPart);
-			entity.setJson(json);
-		}
-		store.save(entity);
-		resource.setId(entity.getResourceType() + "/" + entity.getResourceId());
+	public MethodOutcome update(@IdParam IdType id, @ResourceParam Patient patient) {
+		
+		Patient updatedPatient = patientBusinessService.updatedPatient(patient);
+		
+		
 		MethodOutcome outcome = new MethodOutcome();
-		outcome.setId(new IdType(resource.fhirType(), entity.getResourceId()));
-		outcome.setResource(resource);
-		outcome.setCreated(found == null || found.isEmpty());
+		outcome.setId(new IdType(updatedPatient.fhirType(), updatedPatient.getId()));
+		outcome.setResource(updatedPatient);
+		outcome.setCreated(updatedPatient == null || updatedPatient.isEmpty());
 		return outcome;
 	}
 
 	@Read
 	public Patient read(@IdParam IdType theId) {
-		List<ResourceEntity> found = store.findByResourceTypeAndResourceId("Patient", theId.getIdPart());
-		if (found != null && !found.isEmpty()) {
-			IBaseResource r = (IBaseResource) fhirContext.newJsonParser().parseResource(found.get(0).getJson());
-			if (r != null)
-				return (Patient) r;
-		}
-		Patient p = new Patient();
-		p.setId(theId);
-		p.addName().setFamily("Test").addGiven("Patient");
-		return p;
+		return patientBusinessService.readPatient(theId);
 	}
 
 	@Search
 	public List<Patient> search(@OptionalParam(name = "name") StringParam name) {
-		List<ResourceEntity> stored = store.findByResourceType("Patient").stream()
-				.filter(e -> {
-					if (name == null || name.isEmpty()) return true;
-					try {
-						IBaseResource r = fhirContext.newJsonParser().parseResource(e.getJson());
-						if (r instanceof Patient) {
-							Patient p = (Patient) r;
-							return p.getName().stream()
-									.anyMatch(n -> n.getFamily().equalsIgnoreCase(name.getValue())
-											|| n.getGiven().stream()
-													.anyMatch(g -> g.getValue().equalsIgnoreCase(name.getValue())));
-						}
-					} catch (Exception ex) {
-						return false;
-					}
-					return false;
-				})
-				.toList();
-		List<Patient> out = new ArrayList<>();
-		for (ResourceEntity e : stored) {
-			out.add((Patient) fhirContext.newJsonParser().parseResource(e.getJson()));
-		}
-		return out;
+		return patientBusinessService.searchPatient(name);
 	}
 
 	@Operation(name = "export-document", idempotent = false)
-	public Bundle exportDocument(@IdParam IIdType theId, @ResourceParam Parameters parameters) {
+	public Bundle exportDocument(@IdParam IdType theId, @ResourceParam Parameters parameters) {
 		if ((parameters.getParameter("type") != null) && //
 				(parameters.getParameter("type").getValue() instanceof Coding) && //
 				("urn:oid:2.16.756.5.30.1.127.3.10.10".equals(//
@@ -154,9 +94,7 @@ public class PatientProvider implements IResourceProvider {
 		) {
 
 			// In a real implementation, you would retrieve the patient and related resources based on the provided ID
-			Bundle bundle = new Bundle();
-			bundle.setType(Bundle.BundleType.DOCUMENT);
-			return bundle;
+			return patientBusinessService.exportDocument(theId, parameters);
 		} else {
 			throw new IllegalArgumentException("Unsupported type code!");
 		}

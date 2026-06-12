@@ -79,7 +79,7 @@
 			<artifactId>hibernate-envers</artifactId>
 			<version>6.6.49.Final</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-validation</artifactId>
@@ -90,12 +90,25 @@
 			<artifactId>hapi-fhir-caching-caffeine</artifactId>
 			<version>${hapi.fhir.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>ca.uhn.hapi.fhir</groupId>
 			<artifactId>hapi-fhir-validation-resources-r4</artifactId>
 			<version>${hapi.fhir.version}</version>
 		</dependency>
+
+		<dependency>
+			<groupId>org.projecthusky.fhir.vacd.ch</groupId>
+			<artifactId>husky-fhir-vacd-ch-common</artifactId>
+			<version>3.3.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.projecthusky.common</groupId>
+					<artifactId>husky-common-gen</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
 
 		<!-- JPA + H2 (runtime) -->
 		<dependency>
