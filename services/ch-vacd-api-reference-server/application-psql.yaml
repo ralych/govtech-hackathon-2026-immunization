@@ -1,6 +1,13 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/chvacdapirefserver
+    url: jdbc:postgresql://localhost:5433/chvacdapirefserver
     username: vacduser
     password: vacduser
     driverClassName: org.postgresql.Driver
+
+ehrbase:
+  url: http://localhost:8082/ehrbase/rest/openehr/v1
+
+#openFHIR mapping engine
+openfhir:
+  url: http://localhost:8083

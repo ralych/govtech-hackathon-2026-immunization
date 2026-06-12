@@ -94,7 +94,7 @@ public class FhirServletConfig {
 
 		ResponseValidatingInterceptor resValidatorInterceptor = new ResponseValidatingInterceptor();
 		resValidatorInterceptor.setFailOnSeverity(ResultSeverityEnum.ERROR);
-//		resValidatorInterceptor.setAddResponseHeaderOnSeverity(ResultSeverityEnum.WARNING);
+		resValidatorInterceptor.setAddResponseHeaderOnSeverity(ResultSeverityEnum.WARNING);
 		server.registerInterceptor(resValidatorInterceptor);
 
 		// Try to register the HAPI OpenAPI interceptor if present on the classpath

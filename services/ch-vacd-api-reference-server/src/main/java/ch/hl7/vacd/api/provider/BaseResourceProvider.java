@@ -83,7 +83,7 @@ public abstract class BaseResourceProvider<T extends IBaseResource> implements I
     @Search
     public List<T> search() {
         List<ResourceEntity> entities = store.findByResourceType(resourceClass.getSimpleName());
-        return entities.stream().map(e -> (IBaseResource) fhirContext.newJsonParser().parseResource(e.getJson())).map(resourceClass::cast).toList();
+        return entities.stream().map(e -> (IBaseResource) fhirContext.newJsonParser().parseResource(e.getJson()).setId(e.getResourceId())).map(resourceClass::cast).toList();
     }
 
     @Override

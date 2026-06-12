@@ -1,5 +1,8 @@
 package ch.hl7.vacd.api.entity;
 
+import java.util.Calendar;
+
+import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.envers.AuditTable;
 import org.hibernate.envers.Audited;
 
@@ -9,7 +12,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PreUpdate;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 @Entity
 @Table(name = "fhir_resource")
@@ -32,6 +38,11 @@ public class ResourceEntity {
 
     @Column(name = "json", columnDefinition = "TEXT")
     private String json;
+    
+    @UpdateTimestamp
+	@Temporal(TemporalType.TIMESTAMP)
+//	@Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+	private Calendar lastUpdate;
 
     public Long getId() {
         return id;
@@ -84,5 +95,24 @@ public class ResourceEntity {
 	@PreUpdate
 	public void onUpdate() {
 		this.version++;
+		this.lastUpdate = Calendar.getInstance();
+	}
+	
+	/**
+	 * Method get the last update
+	 * 
+	 * @return the last update date
+	 */
+	public Calendar getLastUpdate() {
+		return lastUpdate;
+	}
+	
+	/**
+	 * Method to set the last update
+	 * 
+	 * @param lastUpdate the lastUpdate to set
+	 */
+	public void setLastUpdate(Calendar lastUpdate) {
+		this.lastUpdate = lastUpdate;
 	}
 }

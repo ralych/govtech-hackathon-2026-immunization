@@ -14,6 +14,7 @@ import ch.hl7.vacd.api.client.FeederAuditEnricher;
 import ch.hl7.vacd.api.client.OpenFhirClient;
 import ch.hl7.vacd.api.entity.ResourceEntity;
 import ch.hl7.vacd.api.repo.ResourceRepository;
+import ch.hl7.vacd.api.utils.RessourceUtil;
 
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CanonicalType;
@@ -54,16 +55,15 @@ public class BundleProvider implements IResourceProvider {
 
 	private static final Logger log = LoggerFactory.getLogger(BundleProvider.class);
 
-	private static final String CH_VACD_BUNDLE_PROFILE =
-			"http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-document-immunization-administration";
+	private static final String CH_VACD_BUNDLE_PROFILE = "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-document-immunization-administration";
 
 	private final FhirContext fhirContext;
 	private final ResourceRepository store;
 	private final EhrbaseClient ehrbaseClient;
 	private final OpenFhirClient openFhirClient;
 
-	public BundleProvider(FhirContext fhirContext, ResourceRepository store,
-			EhrbaseClient ehrbaseClient, OpenFhirClient openFhirClient) {
+	public BundleProvider(FhirContext fhirContext, ResourceRepository store, EhrbaseClient ehrbaseClient,
+			OpenFhirClient openFhirClient) {
 		this.fhirContext = fhirContext;
 		this.store = store;
 		this.ehrbaseClient = ehrbaseClient;
@@ -82,8 +82,8 @@ public class BundleProvider implements IResourceProvider {
 		public final List<PractitionerRole> practitionerRoles;
 
 		public Peeled(Composition composition, List<Immunization> immunizations, Patient patient,
-				List<Practitioner> practitioners, List<Organization> organizations,
-				List<Location> locations, List<PractitionerRole> practitionerRoles) {
+				List<Practitioner> practitioners, List<Organization> organizations, List<Location> locations,
+				List<PractitionerRole> practitionerRoles) {
 			this.composition = composition;
 			this.immunizations = immunizations;
 			this.patient = patient;
@@ -99,8 +99,7 @@ public class BundleProvider implements IResourceProvider {
 	private Bundle ensureBundleProfile(Bundle bundle) {
 		Meta meta = bundle.getMeta();
 		if (meta != null) {
-			List<String> profiles = meta.getProfile().stream()
-					.map(CanonicalType::getValue)
+			List<String> profiles = meta.getProfile().stream().map(CanonicalType::getValue)
 					.collect(Collectors.toList());
 			if (profiles.contains(CH_VACD_BUNDLE_PROFILE)) {
 				return bundle;
@@ -132,7 +131,8 @@ public class BundleProvider implements IResourceProvider {
 		Map<String, Resource> byRef = new HashMap<>();
 		for (Bundle.BundleEntryComponent entry : entries) {
 			Resource resource = entry.getResource();
-			if (resource == null) continue;
+			if (resource == null)
+				continue;
 			String rtype = resource.fhirType();
 			String rid = resource.getIdElement() != null ? resource.getIdElement().getIdPart() : null;
 			if (rid != null) {
@@ -188,9 +188,8 @@ public class BundleProvider implements IResourceProvider {
 		}
 		Resource subjectResource = byRef.get(subjectRef.getReference());
 		if (!(subjectResource instanceof Patient)) {
-			throw new UnprocessableEntityException(
-					"Composition.subject (" + subjectRef.getReference()
-							+ ") does not resolve to a Patient in the Bundle");
+			throw new UnprocessableEntityException("Composition.subject (" + subjectRef.getReference()
+					+ ") does not resolve to a Patient in the Bundle");
 		}
 		Patient patient = (Patient) subjectResource;
 
@@ -212,8 +211,8 @@ public class BundleProvider implements IResourceProvider {
 			}
 		}
 
-		return new Peeled(composition, immunizations, patient, practitioners,
-				organizations, locations, practitionerRoles);
+		return new Peeled(composition, immunizations, patient, practitioners, organizations, locations,
+				practitionerRoles);
 	}
 
 	// --- Immunization status validation ---
@@ -231,11 +230,12 @@ public class BundleProvider implements IResourceProvider {
 	private void createIfAbsent(Resource resource, Map<Resource, String> fullUrlMap) {
 		String resourceType = resource.fhirType();
 		String resourceId = extractId(resource, fullUrlMap);
-		List<ResourceEntity> existing = store.findByResourceTypeAndResourceId(resourceType, resourceId);
+		List<ResourceEntity> existing = store.findByResourceTypeAndResourceId(resourceType,
+				RessourceUtil.removeUrn(resourceId));
 		if (existing == null || existing.isEmpty()) {
 			ResourceEntity entity = new ResourceEntity();
 			entity.setResourceType(resourceType);
-			entity.setResourceId(resourceId);
+			entity.setResourceId(RessourceUtil.removeUrn(resourceId));
 			entity.setJson(fhirContext.newJsonParser().encodeResourceToString(resource));
 			store.save(entity);
 			log.info("Created absent {} id={}", resourceType, resourceId);
@@ -276,11 +276,11 @@ public class BundleProvider implements IResourceProvider {
 	private static final Pattern MED_MGMT_PATTERN = Pattern.compile("medication_management:(\\d+)");
 
 	/**
-	 * Splits the enriched FLAT JSON into separate documents per immunization.
-	 * Keys containing "medication_management:X" are grouped by index X.
-	 * Keys NOT containing "medication_management:" are common context and are
-	 * included in every split document. Each split document renumbers its
-	 * medication_management index to :0 so EHRbase sees a single-entry composition.
+	 * Splits the enriched FLAT JSON into separate documents per immunization. Keys
+	 * containing "medication_management:X" are grouped by index X. Keys NOT
+	 * containing "medication_management:" are common context and are included in
+	 * every split document. Each split document renumbers its medication_management
+	 * index to :0 so EHRbase sees a single-entry composition.
 	 */
 	private List<String> splitByMedicationManagement(String enrichedFlatJson) {
 		try {
@@ -296,8 +296,7 @@ public class BundleProvider implements IResourceProvider {
 				Matcher matcher = MED_MGMT_PATTERN.matcher(key);
 				if (matcher.find()) {
 					int index = Integer.parseInt(matcher.group(1));
-					perImmunization.computeIfAbsent(index, k -> new LinkedHashMap<>())
-							.put(key, entry.getValue());
+					perImmunization.computeIfAbsent(index, k -> new LinkedHashMap<>()).put(key, entry.getValue());
 				} else {
 					commonFields.put(key, entry.getValue());
 				}
@@ -368,11 +367,9 @@ public class BundleProvider implements IResourceProvider {
 		// Extract IDs.
 		String patientId = extractId(peeled.patient, fullUrlMap);
 		patientId = patientId.substring("urn:uuid:".length());
-		List<String> practitionerIds = peeled.practitioners.stream()
-				.map(p -> extractId(p, fullUrlMap))
+		List<String> practitionerIds = peeled.practitioners.stream().map(p -> extractId(p, fullUrlMap))
 				.collect(Collectors.toList());
-		List<String> organizationIds = peeled.organizations.stream()
-				.map(o -> extractId(o, fullUrlMap))
+		List<String> organizationIds = peeled.organizations.stream().map(o -> extractId(o, fullUrlMap))
 				.collect(Collectors.toList());
 
 		String ehrId = ehrbaseClient.findEhrByPatient(patientId);
@@ -386,13 +383,15 @@ public class BundleProvider implements IResourceProvider {
 		bundle.setId(type + "/" + id);
 
 		for (Immunization immunization : peeled.immunizations) {
-			var identifiers = immunization.getIdentifier();
-			identifiers.add(
-				new Identifier()
-					.setSystem("urn:che:epr:ch-vacd:ehr-id")
-					.setValue("urn:uuid:" + ehrId)
-			);
-			immunization.setIdentifier(identifiers);
+//			var identifiers = immunization.getIdentifier();
+//			identifiers.add(
+//				new Identifier()
+//					.setSystem("urn:che:epr:ch-vacd:ehr-id")
+//					.setValue("urn:uuid:" + ehrId)
+//			);
+//			immunization.setIdentifier(identifiers);
+			immunization.addIdentifier(
+					new Identifier().setSystem("urn:che:epr:ch-vacd:ehr-id").setValue("urn:uuid:" + ehrId));
 		}
 		String bundleJson = fhirContext.newJsonParser().encodeResourceToString(bundle);
 
@@ -411,36 +410,44 @@ public class BundleProvider implements IResourceProvider {
 
 		// Persist each split immunization document separately.
 		List<String> compositionUids = new ArrayList<>();
-		log.info("Storing {} split Composition documents for Bundle.id={} patientId={} practitioners={} organizations={}",
+		log.info(
+				"Storing {} split Composition documents for Bundle.id={} patientId={} practitioners={} organizations={}",
 				splitDocuments.size(), id, patientId, practitionerIds, organizationIds);
 		for (int i = 0; i < splitDocuments.size(); i++) {
 			String splitDoc = splitDocuments.get(i);
 
 			log.info("Split document for immunization index {}:\n{}", i, splitDoc);
 
-			String compositionUid = ehrbaseClient.postCompositionFlat(ehrId, splitDoc, "ch-vacd-immunization administration.v1-alpha");
+			String compositionUid = ehrbaseClient.postCompositionFlat(ehrId, splitDoc,
+					"ch-vacd-immunization administration.v1-alpha");
 			compositionUids.add(compositionUid);
 			log.info("Stored split Composition[{}] uid={} ehrId={}", i, compositionUid, ehrId);
 
-			// Store the Immunization FHIR resource with compositionUid identifier for later retrieval.
+			// Store the Immunization FHIR resource with compositionUid identifier for later
+			// retrieval.
 			if (i < peeled.immunizations.size()) {
 				Immunization imm = peeled.immunizations.get(i);
-				imm.addIdentifier(new Identifier()
-						.setSystem("urn:che:epr:ch-vacd:composition-uid")
-						.setValue(compositionUid));
-				String immJson = fhirContext.newJsonParser().encodeResourceToString(imm);
-				String immId = extractId(imm, fullUrlMap);
+				imm.addIdentifier(
+						new Identifier().setSystem("urn:che:epr:ch-vacd:composition-uid").setValue(compositionUid));
 
-				ResourceEntity immEntity = new ResourceEntity();
-				immEntity.setResourceType("Immunization");
-				immEntity.setResourceId(immId);
-				immEntity.setJson(immJson);
-				store.save(immEntity);
+				createIfAbsent(imm, fullUrlMap);
+
+//				String immJson = fhirContext.newJsonParser().encodeResourceToString(imm);
+				String immId = extractId(imm, fullUrlMap);
+//				
+//				List<ResourceEntity> existing = store.findByResourceTypeAndResourceId(imm.getResourceType(), RessourceUtil.removeUrn( immId));
+//
+//				ResourceEntity immEntity = new ResourceEntity();
+//				immEntity.setResourceType("Immunization");
+//				immEntity.setResourceId(RessourceUtil.removeUrn(immId));
+//				immEntity.setJson(immJson);
+//				store.save(immEntity);
 				log.info("Stored Immunization id={} with compositionUid={}", immId, compositionUid);
 			}
 		}
 
-		log.info("Completed ingestion: bundleId={} patientId={} practitioners={} organizations={} immunizations={} compositions={}",
+		log.info(
+				"Completed ingestion: bundleId={} patientId={} practitioners={} organizations={} immunizations={} compositions={}",
 				id, patientId, practitionerIds, organizationIds, peeled.immunizations.size(), compositionUids.size());
 
 		MethodOutcome outcome = new MethodOutcome();
@@ -454,7 +461,8 @@ public class BundleProvider implements IResourceProvider {
 		List<ResourceEntity> found = store.findByResourceTypeAndResourceId("Bundle", id.getIdPart());
 		if (found != null && !found.isEmpty()) {
 			IBaseResource r = fhirContext.newJsonParser().parseResource(found.get(0).getJson());
-			if (r instanceof Bundle) return (Bundle) r;
+			if (r instanceof Bundle)
+				return (Bundle) r;
 		}
 		return null;
 	}
@@ -465,7 +473,8 @@ public class BundleProvider implements IResourceProvider {
 		List<Bundle> out = new ArrayList<>();
 		for (ResourceEntity e : entities) {
 			IBaseResource r = fhirContext.newJsonParser().parseResource(e.getJson());
-			if (r instanceof Bundle) out.add((Bundle) r);
+			if (r instanceof Bundle)
+				out.add((Bundle) r);
 		}
 		return out;
 	}
