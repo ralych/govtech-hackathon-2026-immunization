@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.Composition;
+import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Immunization;
 import org.hl7.fhir.r4.model.Location;
 import org.hl7.fhir.r4.model.Meta;
@@ -36,6 +37,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import ch.hl7.vacd.api.domain.Peeled;
+import ch.hl7.vacd.api.entity.ResourceIdentifier;
 
 /**
  * 
@@ -72,11 +74,11 @@ public class RessourceUtil {
 	public static String extractId(Resource resource, Map<Resource, String> fullUrlMap) {
 		String id = resource.getIdElement() != null ? resource.getIdElement().getIdPart() : null;
 		if (id != null && !id.isEmpty()) {
-			return id;
+			return removeUrn(id);
 		}
 		String fullUrl = fullUrlMap.get(resource);
 		if (fullUrl != null && fullUrl.startsWith("urn:uuid:")) {
-			return fullUrl.substring("urn:uuid:".length());
+			return removeUrn(fullUrl);
 		}
 		return UUID.randomUUID().toString();
 	}
@@ -266,6 +268,30 @@ public class RessourceUtil {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to split enriched FLAT JSON by medication_management", e);
 		}
+	}
+
+	public static List<Identifier> getIdentifiers(Resource resource) {
+		List<Identifier> identifiers = new ArrayList<>();
+		if (resource instanceof Patient) {
+			Patient patient = (Patient) resource;
+			identifiers.addAll(patient.getIdentifier());
+		} else if (resource instanceof Immunization) {
+			Immunization immunization = (Immunization) resource;
+			identifiers.addAll(immunization.getIdentifier());
+		} else if (resource instanceof Practitioner) {
+			Practitioner practitioner = (Practitioner) resource;
+			identifiers.addAll(practitioner.getIdentifier());
+		} else if (resource instanceof Organization) {
+			Organization organization = (Organization) resource;
+			identifiers.addAll(organization.getIdentifier());
+		} else if (resource instanceof PractitionerRole) {
+			PractitionerRole practitionerRole = (PractitionerRole) resource;
+			identifiers.addAll(practitionerRole.getIdentifier());
+		} else if (resource instanceof Composition) {
+			Composition practitionerRole = (Composition) resource;
+			identifiers.add(practitionerRole.getIdentifier());
+		}
+		return identifiers;
 	}
 
 }

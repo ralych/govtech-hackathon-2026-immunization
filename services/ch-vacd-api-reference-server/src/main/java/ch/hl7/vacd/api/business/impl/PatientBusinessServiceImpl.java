@@ -7,7 +7,9 @@
 package ch.hl7.vacd.api.business.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
@@ -15,7 +17,7 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
-import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdVaccinationRecordDocument;
+import org.hl7.fhir.r4.model.Resource;
 import org.springframework.stereotype.Service;
 
 import ca.uhn.fhir.context.FhirContext;
@@ -29,15 +31,12 @@ import ch.hl7.vacd.api.repo.ResourceRepository;
  * 	
  */
 @Service
-public class PatientBusinessServiceImpl implements PatientBusinessService {
+public class PatientBusinessServiceImpl extends AbstractBusinessService implements PatientBusinessService {
 
-	private FhirContext fhirContext;
-	private ResourceRepository store;
 	private EhrbaseClient ehrbaseClient;
 
 	public PatientBusinessServiceImpl(FhirContext fhirContext, ResourceRepository store, EhrbaseClient ehrbaseClient) {
-		this.fhirContext = fhirContext;
-		this.store = store;
+		super(fhirContext, store);
 		this.ehrbaseClient = ehrbaseClient;
 	}
 
@@ -53,11 +52,8 @@ public class PatientBusinessServiceImpl implements PatientBusinessService {
 		patient.addIdentifier().setSystem("urn:che:epr:ch-vacd:ehr-id").setValue("urn:uuid:" + ehrId);
 		json = fhirContext.newJsonParser().encodeResourceToString(patient);
 
-		ResourceEntity entity = new ResourceEntity();
-		entity.setResourceType(type);
-		entity.setResourceId(id);
-		entity.setJson(json);
-		store.save(entity);
+		createIfAbsent(patient, new HashMap<>());
+
 		return patient;
 	}
 
@@ -73,19 +69,19 @@ public class PatientBusinessServiceImpl implements PatientBusinessService {
 		if (found != null && !found.isEmpty()) {
 			entity = found.get(0);
 			entity.setJson(json);
+			store.save(entity);
 		} else {
-			entity = new ResourceEntity();
-			entity.setResourceType(type);
-			entity.setResourceId(
-					idPart == null || idPart.isEmpty()
-							? (patient.getIdElement() != null ? patient.getIdElement().getIdPart()
-									: UUID.randomUUID().toString())
-							: idPart);
-			entity.setJson(json);
+//			entity = new ResourceEntity();
+//			entity.setResourceType(type);
+//			entity.setResourceId(
+//					idPart == null || idPart.isEmpty()
+//							? (patient.getIdElement() != null ? patient.getIdElement().getIdPart()
+//									: UUID.randomUUID().toString())
+//							: idPart);
+//			entity.setJson(json);
+			createIfAbsent(patient, new HashMap<>());
 		}
-		store.save(entity);
-		patient.setId(entity.getResourceType() + "/" + entity.getResourceId());
-
+		
 		return patient;
 
 	}

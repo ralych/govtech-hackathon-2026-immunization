@@ -4,6 +4,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.support.DefaultProfileValidationSupport;
 import ca.uhn.fhir.context.support.IValidationSupport;
 import ca.uhn.fhir.rest.server.RestfulServer;
+import ca.uhn.fhir.rest.server.interceptor.LoggingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.RequestValidatingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseValidatingInterceptor;
 import ca.uhn.fhir.validation.ResultSeverityEnum;
@@ -85,6 +86,11 @@ public class FhirServletConfig {
 
 		// Register plain providers (non-IResourceProvider) for custom operations.
 		server.registerProviders(vaccinationProvider);
+		
+		
+		LoggingInterceptor logInterceptor = new LoggingInterceptor();
+		logInterceptor.setLogger(loggger);
+		server.registerInterceptor(logInterceptor);
 
 		RequestValidatingInterceptor reqValidatorInterceptor = new RequestValidatingInterceptor();
 		reqValidatorInterceptor.setFailOnSeverity(ResultSeverityEnum.ERROR);

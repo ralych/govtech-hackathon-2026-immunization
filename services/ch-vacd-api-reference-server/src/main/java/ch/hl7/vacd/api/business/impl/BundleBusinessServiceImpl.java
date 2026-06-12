@@ -7,28 +7,21 @@
 package ch.hl7.vacd.api.business.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Composition;
+import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Immunization;
-import org.hl7.fhir.r4.model.Location;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.PractitionerRole;
-import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.projecthusky.fhir.vacd.ch.common.enums.ChVacdDocumentType;
 import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunizationAdministrationDocument;
@@ -37,59 +30,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import ch.hl7.vacd.api.business.BundleBusinessService;
 import ch.hl7.vacd.api.client.EhrbaseClient;
 import ch.hl7.vacd.api.client.FeederAuditEnricher;
 import ch.hl7.vacd.api.client.OpenFhirClient;
 import ch.hl7.vacd.api.domain.Peeled;
 import ch.hl7.vacd.api.entity.ResourceEntity;
-import ch.hl7.vacd.api.provider.BundleProvider;
+import ch.hl7.vacd.api.entity.ResourceIdentifier;
 import ch.hl7.vacd.api.repo.ResourceRepository;
 import ch.hl7.vacd.api.utils.RessourceUtil;
 
 /**
- * 
+ * 	
  */
 @Service
-public class BundleBusinessServiceImpl implements BundleBusinessService {
+public class BundleBusinessServiceImpl extends AbstractBusinessService implements BundleBusinessService {
 
-	private static final Logger log = LoggerFactory.getLogger(BundleProvider.class);
+	private static final Logger log = LoggerFactory.getLogger(BundleBusinessServiceImpl.class);
 
-	private final FhirContext fhirContext;
-	private final ResourceRepository store;
+
 	private final EhrbaseClient ehrbaseClient;
 	private final OpenFhirClient openFhirClient;
 
 	public BundleBusinessServiceImpl(FhirContext fhirContext, ResourceRepository store, EhrbaseClient ehrbaseClient,
 			OpenFhirClient openFhirClient) {
-		this.fhirContext = fhirContext;
-		this.store = store;
+		super(fhirContext, store);
 		this.ehrbaseClient = ehrbaseClient;
 		this.openFhirClient = openFhirClient;
 	}
-		
 
-	// --- CreateIfAbsent ---
-	private void createIfAbsent(Resource resource, Map<Resource, String> fullUrlMap) {
-		String resourceType = resource.fhirType();
-		String resourceId = RessourceUtil.extractId(resource, fullUrlMap);
-		List<ResourceEntity> existing = store.findByResourceTypeAndResourceId(resourceType,
-				RessourceUtil.removeUrn(resourceId));
-		if (existing == null || existing.isEmpty()) {
-			ResourceEntity entity = new ResourceEntity();
-			entity.setResourceType(resourceType);
-			entity.setResourceId(RessourceUtil.removeUrn(resourceId));
-			entity.setJson(fhirContext.newJsonParser().encodeResourceToString(resource));
-			store.save(entity);
-			log.info("Created absent {} id={}", resourceType, resourceId);
-		}
-	}
 	
 
 	@Override
@@ -127,7 +97,7 @@ public class BundleBusinessServiceImpl implements BundleBusinessService {
 
 		// Extract IDs.
 		String patientId = RessourceUtil.extractId(peeled.patient, fullUrlMap);
-		patientId = patientId.substring("urn:uuid:".length());
+//		patientId = RessourceUtil.removeUrn(patientId);
 		List<String> practitionerIds = peeled.practitioners.stream().map(p -> RessourceUtil.extractId(p, fullUrlMap))
 				.collect(Collectors.toList());
 		List<String> organizationIds = peeled.organizations.stream().map(o -> RessourceUtil.extractId(o, fullUrlMap))
@@ -144,13 +114,6 @@ public class BundleBusinessServiceImpl implements BundleBusinessService {
 		bundle.setId(type + "/" + id);
 
 		for (Immunization immunization : peeled.immunizations) {
-//			var identifiers = immunization.getIdentifier();
-//			identifiers.add(
-//				new Identifier()
-//					.setSystem("urn:che:epr:ch-vacd:ehr-id")
-//					.setValue("urn:uuid:" + ehrId)
-//			);
-//			immunization.setIdentifier(identifiers);
 			immunization.addIdentifier(
 					new Identifier().setSystem("urn:che:epr:ch-vacd:ehr-id").setValue("urn:uuid:" + ehrId));
 		}
@@ -193,16 +156,7 @@ public class BundleBusinessServiceImpl implements BundleBusinessService {
 
 				createIfAbsent(imm, fullUrlMap);
 
-//				String immJson = fhirContext.newJsonParser().encodeResourceToString(imm);
 				String immId = RessourceUtil.extractId(imm, fullUrlMap);
-//				
-//				List<ResourceEntity> existing = store.findByResourceTypeAndResourceId(imm.getResourceType(), RessourceUtil.removeUrn( immId));
-//
-//				ResourceEntity immEntity = new ResourceEntity();
-//				immEntity.setResourceType("Immunization");
-//				immEntity.setResourceId(RessourceUtil.removeUrn(immId));
-//				immEntity.setJson(immJson);
-//				store.save(immEntity);
 				log.info("Stored Immunization id={} with compositionUid={}", immId, compositionUid);
 			}
 		}
