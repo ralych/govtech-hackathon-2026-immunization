@@ -11,13 +11,11 @@ import java.util.List;
 import java.util.UUID;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
 import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdVaccinationRecordDocument;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ca.uhn.fhir.context.FhirContext;
@@ -28,17 +26,20 @@ import ch.hl7.vacd.api.entity.ResourceEntity;
 import ch.hl7.vacd.api.repo.ResourceRepository;
 
 /**
- * 
+ * 	
  */
 @Service
 public class PatientBusinessServiceImpl implements PatientBusinessService {
 
-	@Autowired
 	private FhirContext fhirContext;
-	@Autowired
 	private ResourceRepository store;
-	@Autowired
 	private EhrbaseClient ehrbaseClient;
+
+	public PatientBusinessServiceImpl(FhirContext fhirContext, ResourceRepository store, EhrbaseClient ehrbaseClient) {
+		this.fhirContext = fhirContext;
+		this.store = store;
+		this.ehrbaseClient = ehrbaseClient;
+	}
 
 	@Override
 	public Patient createPatient(Patient patient) {
@@ -130,15 +131,13 @@ public class PatientBusinessServiceImpl implements PatientBusinessService {
 	@Override
 	public Bundle exportDocument(IdType thePatientId, Parameters parameters) {
 
-		if (false) {
-			ChVacdVaccinationRecordDocument chVaccinationRecordDocument = new ChVacdVaccinationRecordDocument();
-			{
-				Patient patient = readPatient(thePatientId);
-				chVaccinationRecordDocument.setPatient(patient);
-			}
+//		ChVacdVaccinationRecordDocument chVaccinationRecordDocument = new ChVacdVaccinationRecordDocument();
+//		{
+//			Patient patient = readPatient(thePatientId);
+//			chVaccinationRecordDocument.setPatient(patient);
+//		}
+//		return chVaccinationRecordDocument;
 
-			return chVaccinationRecordDocument;
-		}
 		Bundle b = new Bundle();
 		b.setId(UUID.randomUUID().toString());
 		b.setType(Bundle.BundleType.DOCUMENT);
