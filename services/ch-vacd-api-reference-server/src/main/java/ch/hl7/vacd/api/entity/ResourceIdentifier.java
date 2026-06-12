@@ -27,6 +27,9 @@ public class ResourceIdentifier {
 	/** The value of the identifier. */
 	@Column(nullable = false)
 	private String idValue;
+	@Column(nullable = true)
+	private String idUse;
+		
 
 	@ManyToOne
 	@JoinColumn(name = "resourceId")
@@ -97,6 +100,23 @@ public class ResourceIdentifier {
 	 */
 	public ResourceIdentifier setResourceEntity(ResourceEntity resourceEntity) {
 		this.resourceEntity = resourceEntity;
+		return this;
+	}
+
+	/**
+	 * Method to get
+	 * @return the idUse
+	 */
+	public String getIdUse() {
+		return idUse;
+	}
+
+	/**
+	 * Method to set
+	 * @param idUse the idUse
+	 */
+	public ResourceIdentifier setIdUse(String idUse) {
+		this.idUse = idUse;
 		return this;
 	}
 	

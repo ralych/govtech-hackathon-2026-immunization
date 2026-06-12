@@ -14,12 +14,10 @@ import java.util.stream.Collectors;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Immunization;
 import org.hl7.fhir.r4.model.Organization;
-import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Resource;
@@ -37,7 +35,7 @@ import ch.hl7.vacd.api.client.FeederAuditEnricher;
 import ch.hl7.vacd.api.client.OpenFhirClient;
 import ch.hl7.vacd.api.domain.Peeled;
 import ch.hl7.vacd.api.entity.ResourceEntity;
-import ch.hl7.vacd.api.entity.ResourceIdentifier;
+import ch.hl7.vacd.api.exceptions.PatientNotFoundException;
 import ch.hl7.vacd.api.repo.ResourceRepository;
 import ch.hl7.vacd.api.utils.RessourceUtil;
 
@@ -49,7 +47,6 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 
 	private static final Logger log = LoggerFactory.getLogger(BundleBusinessServiceImpl.class);
 
-
 	private final EhrbaseClient ehrbaseClient;
 	private final OpenFhirClient openFhirClient;
 
@@ -60,10 +57,8 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 		this.openFhirClient = openFhirClient;
 	}
 
-	
-
 	@Override
-	public Bundle createBundle(Bundle bundle) {
+	public Bundle createBundle(Bundle bundle) throws PatientNotFoundException {
 
 		try {
 			ChVacdParser parser = new ChVacdParser(fhirContext);
@@ -83,8 +78,21 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 			RessourceUtil.validateStatus(immunization);
 		}
 
-		// CreateIfAbsent for Practitioners, Organizations, and PractitionerRoles.
 		Map<Resource, String> fullUrlMap = RessourceUtil.buildFullUrlMap(bundle);
+
+		// Extract IDs.
+		String patientId = RessourceUtil.extractId(peeled.patient, fullUrlMap);
+		String ehrId = ehrbaseClient.findEhrByPatient(patientId);
+
+		if (ehrId == null) {
+			log.error("No EHR found for patientId: {}", patientId);
+			throw new PatientNotFoundException("No EHR found for patientId: " + patientId);
+		}
+
+		log.info("Found ehrId: {} for patientId: {}", ehrId, patientId);
+
+		// CreateIfAbsent for Practitioners, Organizations, and PractitionerRoles.
+
 		for (Practitioner practitioner : peeled.practitioners) {
 			createIfAbsent(practitioner, fullUrlMap);
 		}
@@ -95,16 +103,11 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 			createIfAbsent(practitionerRole, fullUrlMap);
 		}
 
-		// Extract IDs.
-		String patientId = RessourceUtil.extractId(peeled.patient, fullUrlMap);
 //		patientId = RessourceUtil.removeUrn(patientId);
 		List<String> practitionerIds = peeled.practitioners.stream().map(p -> RessourceUtil.extractId(p, fullUrlMap))
 				.collect(Collectors.toList());
 		List<String> organizationIds = peeled.organizations.stream().map(o -> RessourceUtil.extractId(o, fullUrlMap))
 				.collect(Collectors.toList());
-
-		String ehrId = ehrbaseClient.findEhrByPatient(patientId);
-		log.info("Found ehrId: {} for patientId: {}", ehrId, patientId);
 
 		// Assign Bundle ID and persist to the FHIR store.
 		String type = bundle.fhirType();

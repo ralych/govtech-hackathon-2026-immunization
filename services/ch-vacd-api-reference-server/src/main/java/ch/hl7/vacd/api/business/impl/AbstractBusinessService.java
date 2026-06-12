@@ -39,8 +39,11 @@ public class AbstractBusinessService {
 			entity.setJson(fhirContext.newJsonParser().encodeResourceToString(resource));
 
 			RessourceUtil.getIdentifiers(resource).forEach(identifier -> {
-				entity.addIdentifier(
-						new ResourceIdentifier().setIdSystem(identifier.getSystem()).setIdValue(identifier.getValue()).setResourceEntity(entity) );
+				entity.addIdentifier(new ResourceIdentifier()//
+						.setIdSystem(identifier.getSystem())//
+						.setIdValue(identifier.getValue())//
+						.setIdUse((identifier.getUse() != null) ? identifier.getUse().toCode() : null)//
+						.setResourceEntity(entity));
 			});
 
 			store.save(entity);

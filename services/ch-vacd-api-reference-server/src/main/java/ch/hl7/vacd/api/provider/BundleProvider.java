@@ -1,9 +1,11 @@
 package ch.hl7.vacd.api.provider;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.springframework.stereotype.Component;
 
 import ca.uhn.fhir.context.FhirContext;
@@ -14,7 +16,9 @@ import ca.uhn.fhir.rest.annotation.ResourceParam;
 import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.server.IResourceProvider;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import ch.hl7.vacd.api.business.BundleBusinessService;
+import ch.hl7.vacd.api.exceptions.PatientNotFoundException;
 import ch.hl7.vacd.api.utils.RessourceUtil;
 
 @Component
@@ -42,12 +46,23 @@ public class BundleProvider implements IResourceProvider {
 		// Ensure CH VACD profile is present in meta.
 		bundle = RessourceUtil.ensureBundleProfile(bundle, CH_VACD_BUNDLE_PROFILE);
 
-		Bundle retBundle = bundleBusinessService.createBundle(bundle);
+		try {
+			MethodOutcome outcome = new MethodOutcome();
+			Bundle created = bundleBusinessService.createBundle(bundle);
+			outcome.setId(created.getIdElement());
+			outcome.setResource(created);
+			outcome.setCreated(true);
+			return outcome;
+		} catch (PatientNotFoundException e) {
+			OperationOutcome oo = new OperationOutcome();
+			oo.addIssue()//
+					.setSeverity(OperationOutcome.IssueSeverity.ERROR)//
+					.setCode(OperationOutcome.IssueType.NOTFOUND)//
+					.setDiagnostics(e.getMessage());
+			oo.setId(UUID.randomUUID().toString());
+			throw new ResourceNotFoundException(e.getMessage(), oo);
+		}
 
-		MethodOutcome outcome = new MethodOutcome();
-		outcome.setId(new IdType("Bundle", retBundle.getId()));
-		outcome.setResource(retBundle);
-		return outcome;
 	}
 
 	@Read
