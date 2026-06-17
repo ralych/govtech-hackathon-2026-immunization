@@ -25,15 +25,18 @@ public interface FhirClient {
      *   "resourceType": "Parameters",
      *   "parameter": [
      *     {
-     *       "name": "patientId",
-     *       "valueString": "example"
+     *       "name": "type",
+     *       "valueCoding": {
+     *         "system": "urn:oid:2.16.756.5.30.1.127.3.10.10",
+     *         "code": "urn:che:epr:ch-vacd:vaccination-record:2022"
+     *       }
      *     }
      *   ]
      * }
      * @return Bundle with all vaccinations (VaccinationRecord)
      */
-    @PostMapping("/Bundle/$vaccinations")
-    Bundle getVaccinationRecord(@RequestBody Parameters parameters);
+    @PostMapping("/Patient/{id}/$export-document")
+    Bundle getVaccinationRecord(@PathVariable("id") String id, @RequestBody Parameters parameters);
 
     /**
      * https://fhir.ch/ig/ch-vacd/6.0.0/immunization-administration-document.html
