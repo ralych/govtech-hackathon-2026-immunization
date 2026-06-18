@@ -16,7 +16,7 @@ import jakarta.persistence.Table;
 @Table(name = "fhir_resource_identifier")
 @Audited
 @AuditTable(value = "fhir_resource_identifier_audit")
-public class ResourceIdentifier {
+public class ResourceIdentifierEntity {
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,7 +71,7 @@ public class ResourceIdentifier {
 	 * Method to set
 	 * @param id the id
 	 */
-	public ResourceIdentifier setId(Long id) {
+	public ResourceIdentifierEntity setId(Long id) {
 		this.id = id;
 		return this;
 	}
@@ -80,7 +80,7 @@ public class ResourceIdentifier {
 	 * Method to set
 	 * @param idSystem the idSystem
 	 */
-	public ResourceIdentifier setIdSystem(String idSystem) {
+	public ResourceIdentifierEntity setIdSystem(String idSystem) {
 		this.idSystem = idSystem;
 		return this;
 	}
@@ -89,7 +89,7 @@ public class ResourceIdentifier {
 	 * Method to set
 	 * @param idValue the idValue
 	 */
-	public ResourceIdentifier setIdValue(String idValue) {
+	public ResourceIdentifierEntity setIdValue(String idValue) {
 		this.idValue = idValue;
 		return this;
 	}
@@ -98,7 +98,7 @@ public class ResourceIdentifier {
 	 * Method to set
 	 * @param resourceEntity the resourceEntity
 	 */
-	public ResourceIdentifier setResourceEntity(ResourceEntity resourceEntity) {
+	public ResourceIdentifierEntity setResourceEntity(ResourceEntity resourceEntity) {
 		this.resourceEntity = resourceEntity;
 		return this;
 	}
@@ -115,9 +115,18 @@ public class ResourceIdentifier {
 	 * Method to set
 	 * @param idUse the idUse
 	 */
-	public ResourceIdentifier setIdUse(String idUse) {
+	public ResourceIdentifierEntity setIdUse(String idUse) {
 		this.idUse = idUse;
 		return this;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ResourceIdentifierEntity [\n    id=").append(id).append("\n    idSystem=").append(idSystem)
+				.append("\n    idValue=").append(idValue).append("\n    idUse=").append(idUse)
+				.append("\n    resourceEntity=").append(resourceEntity).append("\n]");
+		return builder.toString();
 	}
 	
 	

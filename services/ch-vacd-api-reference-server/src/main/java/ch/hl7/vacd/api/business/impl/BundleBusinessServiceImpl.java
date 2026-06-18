@@ -35,6 +35,7 @@ import ch.hl7.vacd.api.client.FeederAuditEnricher;
 import ch.hl7.vacd.api.client.OpenFhirClient;
 import ch.hl7.vacd.api.domain.Peeled;
 import ch.hl7.vacd.api.entity.ResourceEntity;
+import ch.hl7.vacd.api.entity.ResourceReferenceEntity;
 import ch.hl7.vacd.api.exceptions.PatientNotFoundException;
 import ch.hl7.vacd.api.repo.ResourceRepository;
 import ch.hl7.vacd.api.utils.RessourceUtil;
@@ -47,14 +48,11 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 
 	private static final Logger log = LoggerFactory.getLogger(BundleBusinessServiceImpl.class);
 
-	private final EhrbaseClient ehrbaseClient;
-	private final OpenFhirClient openFhirClient;
-
-	public BundleBusinessServiceImpl(FhirContext fhirContext, ResourceRepository store, EhrbaseClient ehrbaseClient,
-			OpenFhirClient openFhirClient) {
-		super(fhirContext, store);
-		this.ehrbaseClient = ehrbaseClient;
-		this.openFhirClient = openFhirClient;
+	public BundleBusinessServiceImpl(FhirContext fhirContext, ResourceRepository store, OpenFhirClient openFhirClient,
+			EhrbaseClient ehrbaseClient) {
+		super(fhirContext, store, openFhirClient, ehrbaseClient);
+//		this.ehrbaseClient = ehrbaseClient;
+//		this.openFhirClient = openFhirClient;
 	}
 
 	@Override
@@ -100,7 +98,28 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 			createIfAbsent(organization, fullUrlMap);
 		}
 		for (PractitionerRole practitionerRole : peeled.practitionerRoles) {
-			createIfAbsent(practitionerRole, fullUrlMap);
+			ResourceEntity praRoleEntry = createIfAbsent(practitionerRole, fullUrlMap);
+
+			try {
+				ResourceReferenceEntity refEntity1 = new ResourceReferenceEntity()//
+						.setTargetType("Practitioner")//
+						.setTargetId(practitionerRole.getPractitioner().getReferenceElement().getIdPart())//
+						.setSourceEntity(praRoleEntry)//
+						.setSourceField("PractitionerRole.practitioner");
+				praRoleEntry.addReference(refEntity1);
+
+				ResourceReferenceEntity refEntity2 = new ResourceReferenceEntity()//
+						.setTargetType("Organization")//
+						.setTargetId(practitionerRole.getOrganization().getReferenceElement().getIdPart())//
+						.setSourceEntity(praRoleEntry)//
+						.setSourceField("PractitionerRole.organization");
+				praRoleEntry.addReference(refEntity2);
+
+				store.save(praRoleEntry);
+			} catch (Exception e) {
+				log.error("Error saving Immunization resource to local store: {}", e.getMessage(), e);
+			}
+
 		}
 
 //		patientId = RessourceUtil.removeUrn(patientId);
@@ -120,49 +139,12 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 			immunization.addIdentifier(
 					new Identifier().setSystem("urn:che:epr:ch-vacd:ehr-id").setValue("urn:uuid:" + ehrId));
 		}
-		String bundleJson = fhirContext.newJsonParser().encodeResourceToString(bundle);
+
+		List<String> compositionUids = new ArrayList<>();
 
 		log.info("FHIR server accepted Bundle, id={}", id);
-
-		// Convert FHIR Bundle to openEHR FLAT format via openFHIR.
-		String flatJson = openFhirClient.toOpenEhr(bundleJson);
-		log.info(flatJson);
-
-		// Enrich with feeder_audit (Konkretisierung §13) and composition metadata.
-		String enrichedFlat = FeederAuditEnricher.addOriginal(flatJson, bundleJson);
-
-		// Split the enriched FLAT JSON by medication_management:X identifier.
-		// Each immunization gets its own complete document with common fields.
-		List<String> splitDocuments = RessourceUtil.splitByMedicationManagement(enrichedFlat);
-
-		// Persist each split immunization document separately.
-		List<String> compositionUids = new ArrayList<>();
-		log.info(
-				"Storing {} split Composition documents for Bundle.id={} patientId={} practitioners={} organizations={}",
-				splitDocuments.size(), id, patientId, practitionerIds, organizationIds);
-		for (int i = 0; i < splitDocuments.size(); i++) {
-			String splitDoc = splitDocuments.get(i);
-
-			log.info("Split document for immunization index {}:\n{}", i, splitDoc);
-
-			String compositionUid = ehrbaseClient.postCompositionFlat(ehrId, splitDoc,
-					"ch-vacd-immunization administration.v1-alpha");
-			compositionUids.add(compositionUid);
-			log.info("Stored split Composition[{}] uid={} ehrId={}", i, compositionUid, ehrId);
-
-			// Store the Immunization FHIR resource with compositionUid identifier for later
-			// retrieval.
-			if (i < peeled.immunizations.size()) {
-				Immunization imm = peeled.immunizations.get(i);
-				imm.addIdentifier(
-						new Identifier().setSystem("urn:che:epr:ch-vacd:composition-uid").setValue(compositionUid));
-
-				createIfAbsent(imm, fullUrlMap);
-
-				String immId = RessourceUtil.extractId(imm, fullUrlMap);
-				log.info("Stored Immunization id={} with compositionUid={}", immId, compositionUid);
-			}
-		}
+		Bundle retbundle = processImmunizationAdmnistration(bundle, fullUrlMap, compositionUids, peeled.immunizations,
+				ehrId, patientId);
 
 		log.info(
 				"Completed ingestion: bundleId={} patientId={} practitioners={} organizations={} immunizations={} compositions={}",

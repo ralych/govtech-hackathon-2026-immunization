@@ -5,6 +5,7 @@ import ca.uhn.fhir.rest.annotation.OperationParam;
 import ch.hl7.vacd.api.client.EhrbaseClient;
 import ch.hl7.vacd.api.client.OpenFhirClient;
 import ch.hl7.vacd.api.entity.ResourceEntity;
+import ch.hl7.vacd.api.openehr.ChVacdOpenEhrConstants;
 import ch.hl7.vacd.api.repo.ResourceRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,16 +44,12 @@ import java.util.stream.StreamSupport;
  *
  * Invoke: GET /Bundle/$vaccination-record?ehrId={ehrId}
  */
-@Component
+//@Component
 public class VaccinationProvider {
 
     private static final Logger log = LoggerFactory.getLogger(VaccinationProvider.class);
 
-	private static final String ADMIN_TEMPLATE =
-			"ch-vacd-immunization administration.v1-alpha";
-	private static final String VACC_TEMPLATE =
-			"ch-vacd-vaccination-record.v1-alpha";
-
+	
 	private final FhirContext fhirContext;
 	private final EhrbaseClient ehrbaseClient;
 	private final OpenFhirClient openFhirClient;
@@ -98,7 +95,7 @@ public class VaccinationProvider {
 
 			// Step 3: Convert merged canonical composition to FHIR via openFHIR.
 			String mergedJson = objectMapper.writeValueAsString(merged);
-			String fhirJson = openFhirClient.toFhir(mergedJson, VACC_TEMPLATE);
+			String fhirJson = openFhirClient.toFhir(mergedJson, ChVacdOpenEhrConstants.VACC_TEMPLATE);
             log.info("Converted FHIR JSON:\n{}", fhirJson);
 
 			Bundle bundle = (Bundle) fhirContext.newJsonParser().parseResource(fhirJson);
@@ -151,7 +148,7 @@ public class VaccinationProvider {
 	private List<JsonNode> fetchAdminCompositions(String ehrId) {
 		String aql = "SELECT c " +
 				"FROM EHR e CONTAINS COMPOSITION c " +
-				"WHERE c/archetype_details/template_id/value = '" + ADMIN_TEMPLATE + "' " +
+				"WHERE c/archetype_details/template_id/value = '" + ChVacdOpenEhrConstants.ADMIN_TEMPLATE + "' " +
 				"AND e/ehr_id/value = '" + ehrId + "'";
 
 		List<JsonNode> rows = ehrbaseClient.executeAql(aql);

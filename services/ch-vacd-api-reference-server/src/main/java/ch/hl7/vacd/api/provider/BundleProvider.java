@@ -65,17 +65,17 @@ public class BundleProvider implements IResourceProvider {
 
 	}
 
-	@Read
-	public Bundle read(@IdParam IdType id) {
-
-		return bundleBusinessService.readBundle(id);
-
-	}
-
-	@Search
-	public List<Bundle> search() {
-		return bundleBusinessService.searchBundles();
-
-	}
+//	@Read
+//	public Bundle read(@IdParam IdType id) {
+//
+//		return bundleBusinessService.readBundle(id);
+//
+//	}
+//
+//	@Search
+//	public List<Bundle> search() {
+//		return bundleBusinessService.searchBundles();
+//
+//	}
 
 }

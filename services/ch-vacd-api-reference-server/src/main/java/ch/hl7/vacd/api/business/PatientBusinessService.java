@@ -10,6 +10,7 @@ import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
 
 import ca.uhn.fhir.rest.param.StringParam;
+import ch.hl7.vacd.api.exceptions.PatientNotFoundException;
 
 public interface PatientBusinessService {
 
@@ -21,6 +22,6 @@ public interface PatientBusinessService {
 
 	List<Patient> searchPatient(StringParam name);
 
-	Bundle exportDocument(IdType theId, Parameters parameters);
+	Bundle exportDocument(IdType theId, Parameters parameters) throws PatientNotFoundException;
 
 }

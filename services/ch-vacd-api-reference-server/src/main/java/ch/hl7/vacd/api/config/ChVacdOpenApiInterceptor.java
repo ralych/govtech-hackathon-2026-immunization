@@ -38,7 +38,7 @@ public class ChVacdOpenApiInterceptor extends OpenApiInterceptor {
 			OpenAPI openApi = super.generateOpenApi(theRequestDetails);
 
 			try {
-				OpenAPI openApiFromFile = Yaml.mapper().readValue(this.getClass().getResourceAsStream("/openapi.yaml"),
+				OpenAPI openApiFromFile = Yaml.mapper().readValue(this.getClass().getResourceAsStream("/openapi.yml"),
 						OpenAPI.class);
 
 				updateExamples(openApi, openApiFromFile);

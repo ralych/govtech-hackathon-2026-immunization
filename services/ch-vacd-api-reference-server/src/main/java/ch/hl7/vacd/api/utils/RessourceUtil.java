@@ -7,10 +7,12 @@
 package ch.hl7.vacd.api.utils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -19,7 +21,14 @@ import java.util.stream.Collectors;
 
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Composition;
+import org.hl7.fhir.r4.model.ContactPoint.ContactPointUse;
+import org.hl7.fhir.r4.model.Device;
+import org.hl7.fhir.r4.model.Device.FHIRDeviceStatus;
+import org.hl7.fhir.r4.model.Device.DeviceNameType;
+import org.hl7.fhir.r4.model.DomainResource;
+import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Immunization;
 import org.hl7.fhir.r4.model.Location;
@@ -30,6 +39,9 @@ import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
+import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunization;
+import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunizationAdministrationDocument;
+import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdVaccinationRecordDocument;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,7 +49,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import ch.hl7.vacd.api.domain.Peeled;
-import ch.hl7.vacd.api.entity.ResourceIdentifier;
+import ch.hl7.vacd.api.entity.ResourceEntity;
+import ch.hl7.vacd.api.entity.ResourceIdentifierEntity;
 
 /**
  * 
@@ -292,6 +305,42 @@ public class RessourceUtil {
 			identifiers.add(practitionerRole.getIdentifier());
 		}
 		return identifiers;
+	}
+
+	public static String addUuidUrn(String id) {
+		if (id != null && !id.startsWith("urn:uuid:")) {
+			return "urn:uuid:" + id;
+		}
+		return id;
+	}
+
+	public static ChVacdImmunizationAdministrationDocument createImmunizationAdministrationDocument() {
+		ChVacdImmunizationAdministrationDocument chVaccinationRecordDocument = new ChVacdImmunizationAdministrationDocument();
+		{
+			Device device = createDevice();
+			chVaccinationRecordDocument.addAuthor(device, new Date());
+		}
+		return chVaccinationRecordDocument;
+	}
+
+	public static ChVacdVaccinationRecordDocument createVaccinationRecordDocument() {
+		ChVacdVaccinationRecordDocument chVaccinationRecordDocument = new ChVacdVaccinationRecordDocument();
+		{
+			Device device = createDevice();
+			chVaccinationRecordDocument.addAuthor(device, new Date());
+		}
+		return chVaccinationRecordDocument;
+	}
+
+	public static Device createDevice() {
+		Device device = new Device();
+		device.setId(UUID.randomUUID().toString());
+		device.setStatus(FHIRDeviceStatus.ACTIVE);
+		device.setType(new CodeableConcept().setText("Immunization Registry System"));
+		device.setManufacturer("Workgroup Vaccination Showcase");
+		device.addDeviceName().setName("Immunization Registry System").setType(DeviceNameType.MODELNAME);
+
+		return device;
 	}
 
 }

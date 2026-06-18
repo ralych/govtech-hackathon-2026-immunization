@@ -1,8 +1,11 @@
 package ch.hl7.vacd.api.config;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import ch.hl7.vacd.api.client.EhrbaseClient;
 import ch.hl7.vacd.api.client.OpenFhirClient;
-import com.fasterxml.jackson.databind.JsonNode;
+import ch.hl7.vacd.api.openehr.ChVacdOpenEhrConstants;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -33,9 +36,9 @@ public class OpenFhirBootstrap implements ApplicationRunner {
 	private static final Logger log = LoggerFactory.getLogger(OpenFhirBootstrap.class);
 
 	private static final List<OptSpec> OPTS = List.of(
-			new OptSpec("ch-vacd-immunization administration.v1-alpha",
+			new OptSpec(ChVacdOpenEhrConstants.ADMIN_TEMPLATE,
 					"bootstrap/ch-vacd-immunization-administration.v1-alpha.opt"),
-			new OptSpec("ch-vacd-vaccination-record.v1-alpha",
+			new OptSpec(ChVacdOpenEhrConstants.VACC_TEMPLATE,
 					"bootstrap/ch-vacd-vaccination-record.v1-alpha.opt"));
 
 	private static final List<String> CONTEXT_FILES = List.of(

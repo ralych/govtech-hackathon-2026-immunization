@@ -13,13 +13,14 @@ import ca.uhn.fhir.rest.param.ReferenceParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ch.hl7.vacd.api.repo.ResourceRepository;
 import ch.hl7.vacd.api.business.ImmunizationBusinessService;
-import ch.hl7.vacd.api.client.OpenFhirClient;
+import ch.hl7.vacd.api.client.impl.OpenFhirClientImpl;
 import ch.hl7.vacd.api.entity.ResourceEntity;
 
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Immunization;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Practitioner;
+import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunization;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,7 @@ public class ImmunizationProvider implements IResourceProvider {
 	}
 
 	@Create
-	public MethodOutcome create(@ResourceParam Immunization immunization) {
+	public MethodOutcome create(@ResourceParam ChVacdImmunization immunization) {
 		
 		Immunization retImmunization = immunizationBusinessService.createImmunization(immunization);
 		
@@ -61,7 +62,7 @@ public class ImmunizationProvider implements IResourceProvider {
 	}
 
 	@Update
-	public MethodOutcome update(@IdParam IdType id, @ResourceParam Immunization resource) {
+	public MethodOutcome update(@IdParam IdType id, @ResourceParam ChVacdImmunization resource) {
 	
 		Immunization retImmunization = immunizationBusinessService.updateImmunization(resource);
 		

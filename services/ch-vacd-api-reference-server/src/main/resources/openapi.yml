@@ -124,3 +124,25 @@ paths:
           content:
             application/fhir+json:
               example: { "resourceType": "OperationOutcome","id":"8d8e2442-0c1c-4023-b2ec-23fb93d58eff","issue":[{"severity": "error","code": "not-found","diagnostics": "No EHR found for patientId: 6ddc4cff-c6cd-4227-9f48-43bcdbe95688"}] }
+
+  /Immunization:
+    post:
+      summary: "Create a new immunization."
+      description: ""
+      externalDocs:
+        url: https://fhir.ch/ig/ch-vacd/CapabilityStatement-ch-vacd-api-capstmt-srv.html#Immunization1-3
+      requestBody:
+        content:
+          application/fhir+json:
+            example: { "resourceType": "Immunization", "meta": { "profile": [ "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-immunization" ] }, "text": { "status": "generated", "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><table class=\"hapiPropertyTable\"><tbody><tr><td colspan=\"2\">Immunization</td></tr><tr><td>Identifier</td><td>urn:uuid:c9eaca5a-e73a-48b1-9978-525382835d8f</td></tr><tr><td>Status</td><td>COMPLETED</td></tr><tr><td>Vaccine Code</td><td> Boostrix Polio </td></tr><tr><td>Vaccination Date</td><td>22 April 2009</td></tr><tr><td>Performer</td><td><div><table><tr><td>Practitioner</td><td>Heinz <b>KNOCHENSCHLOSSER </b></td></tr><tr><td>Organization</td><td>Praxis Knochenschlosser</td></tr></table></div></td></tr><tr><td>Target Disease</td><td><span> Acute poliomyelitis (disorder) </span><span> Tetanus (disorder) </span><span> Pertussis (disorder) </span><span> Diphtheria caused by Corynebacterium diphtheriae (disorder) </span></td></tr></tbody></table></div>" }, "extension": [ { "url": "http://fhir.ch/ig/ch-core/StructureDefinition/ch-ext-author", "valueReference": { "reference": "PractitionerRole/b6ac8cef-10b3-466e-a80f-0ebbcd01759e" } }, { "url": "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-ext-verification-status", "valueCoding": { "system": "http://snomed.info/sct", "code": "59156000", "display": "Confirmed" } } ], "identifier": [ { "system": "urn:ietf:rfc:3986", "value": "urn:uuid:fc19802f-38bf-46d1-9c6e-5fad3a0052dc", "use": "usual" } ], "status": "completed", "vaccineCode": { "coding": [ { "system": "http://fhir.ch/ig/ch-vacd/CodeSystem/ch-vacd-swissmedic-cs", "code": "681", "display": "Boostrix Polio" } ] }, "patient": { "reference": "Patient/2db90282-c65e-4bfc-80df-1c3ae31ff2fa" }, "occurrenceDateTime": "2009-04-22", "lotNumber": "8462834", "performer": [ { "actor": { "reference": "PractitionerRole/b6ac8cef-10b3-466e-a80f-0ebbcd01759e" } } ], "protocolApplied": [ { "targetDisease": [ { "coding": [ { "system": "http://snomed.info/sct", "code": "398102009", "display": "Acute poliomyelitis (disorder)" } ] }, { "coding": [ { "system": "http://snomed.info/sct", "code": "76902006", "display": "Tetanus (disorder)" } ] }, { "coding": [ { "system": "http://snomed.info/sct", "code": "27836007", "display": "Pertussis (disorder)" } ] }, { "coding": [ { "system": "http://snomed.info/sct", "code": "397430003", "display": "Diphtheria caused by Corynebacterium diphtheriae (disorder)" } ] } ], "doseNumberPositiveInt": 1 } ] }
+      responses:
+        "200":
+          description: Success
+          content:
+            application/fhir+json:
+              example: { "resourceType": "Immunization", "id": "888bc580-b94a-4a21-9898-184bacc528e9", "meta": { "profile": [ "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-immunization" ] } }
+        "201":
+          description: Created
+          content:
+            application/fhir+json:
+              example: { "resourceType": "Immunization", "id": "888bc580-b94a-4a21-9898-184bacc528e9", "meta": { "profile": [ "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-immunization" ] } }

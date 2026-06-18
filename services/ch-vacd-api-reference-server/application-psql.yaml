@@ -4,6 +4,8 @@ spring:
     username: vacduser
     password: vacduser
     driverClassName: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 ehrbase:
   url: http://localhost:8082/ehrbase/rest/openehr/v1

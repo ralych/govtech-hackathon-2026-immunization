@@ -67,8 +67,7 @@ public class FhirServletConfig {
 
 	@Bean
 	public ServletRegistrationBean<Servlet> fhirServlet(FhirContext fhirContext,
-			Collection<IResourceProvider> providers,
-			VaccinationProvider vaccinationProvider) {
+			Collection<IResourceProvider> providers) {
 		RestfulServer server = new RestfulServer(fhirContext);
 		// Register all discovered resource providers
 		if (resourceProviderClassNames.isEmpty()) {
@@ -82,11 +81,7 @@ public class FhirServletConfig {
 				}
 			});
 			server.setResourceProviders(filteredProviders);
-		}
-
-		// Register plain providers (non-IResourceProvider) for custom operations.
-		server.registerProviders(vaccinationProvider);
-		
+		}		
 		
 		LoggingInterceptor logInterceptor = new LoggingInterceptor();
 		logInterceptor.setLogger(loggger);

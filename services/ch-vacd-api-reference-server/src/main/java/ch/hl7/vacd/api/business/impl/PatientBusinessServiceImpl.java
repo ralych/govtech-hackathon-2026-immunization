@@ -7,25 +7,43 @@
 package ch.hl7.vacd.api.business.impl;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Composition;
 import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Immunization;
+import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.Practitioner;
+import org.hl7.fhir.r4.model.PractitionerRole;
+import org.hl7.fhir.r4.model.Reference;
+import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunization;
+import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdVaccinationRecordDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.param.StringParam;
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ch.hl7.vacd.api.business.PatientBusinessService;
 import ch.hl7.vacd.api.client.EhrbaseClient;
+import ch.hl7.vacd.api.client.OpenFhirClient;
 import ch.hl7.vacd.api.entity.ResourceEntity;
+import ch.hl7.vacd.api.exceptions.PatientNotFoundException;
+import ch.hl7.vacd.api.openehr.ChVacdOpenEhrConstants;
 import ch.hl7.vacd.api.repo.ResourceRepository;
+import ch.hl7.vacd.api.utils.RessourceUtil;
 
 /**
  * 	
@@ -33,11 +51,11 @@ import ch.hl7.vacd.api.repo.ResourceRepository;
 @Service
 public class PatientBusinessServiceImpl extends AbstractBusinessService implements PatientBusinessService {
 
-	private EhrbaseClient ehrbaseClient;
+	private static final Logger log = LoggerFactory.getLogger(PatientBusinessServiceImpl.class);
 
-	public PatientBusinessServiceImpl(FhirContext fhirContext, ResourceRepository store, EhrbaseClient ehrbaseClient) {
-		super(fhirContext, store);
-		this.ehrbaseClient = ehrbaseClient;
+	public PatientBusinessServiceImpl(FhirContext fhirContext, ResourceRepository store, OpenFhirClient openFhirClient,
+			EhrbaseClient ehrbaseClient) {
+		super(fhirContext, store, openFhirClient, ehrbaseClient);
 	}
 
 	@Override
@@ -81,7 +99,7 @@ public class PatientBusinessServiceImpl extends AbstractBusinessService implemen
 //			entity.setJson(json);
 			createIfAbsent(patient, new HashMap<>());
 		}
-		
+
 		return patient;
 
 	}
@@ -92,10 +110,11 @@ public class PatientBusinessServiceImpl extends AbstractBusinessService implemen
 		if (found != null && !found.isEmpty()) {
 			IBaseResource r = (IBaseResource) fhirContext.newJsonParser().parseResource(found.get(0).getJson());
 			if (r != null)
-				return (Patient) r;
+				r.setId(theId.getIdPart());
+			return (Patient) r;
 		}
 		Patient p = new Patient();
-		p.setId(theId);
+		p.setId(theId.getIdPart());
 		p.addName().setFamily("Test").addGiven("Patient");
 		return p;
 	}
@@ -125,19 +144,97 @@ public class PatientBusinessServiceImpl extends AbstractBusinessService implemen
 	}
 
 	@Override
-	public Bundle exportDocument(IdType thePatientId, Parameters parameters) {
+	public Bundle exportDocument(IdType thePatientId, Parameters parameters) throws PatientNotFoundException {
 
-//		ChVacdVaccinationRecordDocument chVaccinationRecordDocument = new ChVacdVaccinationRecordDocument();
-//		{
-//			Patient patient = readPatient(thePatientId);
-//			chVaccinationRecordDocument.setPatient(patient);
+		ChVacdVaccinationRecordDocument chVaccinationRecordDocument = RessourceUtil.createVaccinationRecordDocument();
+
+		Patient patient = readPatient(thePatientId);
+		chVaccinationRecordDocument.setPatient(patient);
+		String ehrId = ehrbaseClient.findEhrByPatient(thePatientId.asStringValue());
+		if (ehrId != null) {
+			log.error("No EHR found for patientId: {}", thePatientId.getIdPart());
+			throw new PatientNotFoundException("No EHR found for patientId: " + thePatientId.getIdPart());
+		}
+
+		log.info("Building vaccination record for patientId={} (ehrId={})", thePatientId.getIdPart(), ehrId);
+
+		String immJson = ehrbaseClient.getImmunizations(ehrId);
+
+		String fhirJson = openFhirClient.toFhir(immJson, ChVacdOpenEhrConstants.VACC_TEMPLATE);
+		log.info("Converted FHIR JSON:\n{}", fhirJson);
+		Bundle bundle = (Bundle) fhirContext.newJsonParser().parseResource(fhirJson);
+		List<Immunization> immEntries = bundle.getEntry().stream().filter(e -> e.getResource() instanceof Immunization)
+				.map(e -> (Immunization) e.getResource()).collect(Collectors.toList());
+		log.info("Bundle contains {} Immunization entries", immEntries.size());
+
+		for (Immunization immunization : immEntries) {
+			log.info("Immunization resource: id={}, status={}, vaccineCode={}", immunization.getId(),
+					immunization.getStatus(), immunization.getVaccineCode().getCodingFirstRep().getCode());
+
+			List<String> perfomerIds = immunization.getPerformer().stream()
+					.filter(f -> (f.getActor() != null && f.getActor().getIdentifier() != null))//
+					.map(f -> RessourceUtil.removeUrn(f.getActor().getIdentifier().getValue()))//
+					.collect(Collectors.toList());
+
+			immunization.getPerformer().clear();
+
+			log.info("Performer IDs for immunization {}: {}", immunization.getId(), perfomerIds);
+			ChVacdImmunization immun = new ChVacdImmunization();
+			immun.copyValues(immunization);
+			for (String performerId : perfomerIds) {
+				PractitionerRole perfomer = getResourceEntry("PractitionerRole", performerId);
+				// complete practitionerrole with reference to practitioner and organization
+				if (perfomer != null) {
+					Practitioner practitioner = getResourceEntry("Practitioner", perfomer.getPractitioner().getReferenceElement().getIdPart());
+					perfomer.setPractitioner(new Reference(practitioner));				
+					Organization organization = getResourceEntry("Organization", perfomer.getOrganization().getReferenceElement().getIdPart());
+					perfomer.setOrganization(new Reference(organization));
+					
+					immun.addPerformer().setActor(new Reference(perfomer));
+				}
+			}
+			
+			chVaccinationRecordDocument.addImmunization(immun);
+		}
+
+//		Bundle bundle = (Bundle) fhirContext.newJsonParser().parseResource(fhirJson);
+//		bundle.setId("urn:uuid:" + UUID.randomUUID().toString());
+//		var immEntries = bundle.getEntry().stream().filter(e -> e.getResource() instanceof Immunization)
+//				.map(e -> (Immunization) e.getResource()).collect(Collectors.toList());
+//
+//		log.info("Bundle contains {} Immunization entries", immEntries.size());
+//		final String practitionerRoleId = immEntries.stream()
+//				.filter(imm -> imm.getPerformer() != null && !imm.getPerformer().isEmpty())
+//				.map(imm -> imm.getPerformer().get(0).getActor().getIdentifier() != null ? imm.getPerformer().get(0)
+//						.getActor().getIdentifier().getValue().substring("urn:uuid:".length()) : null)
+//				.findFirst().orElse(null);
+//
+//		// Step 4: Enrich the Bundle with Patient, Practitioner, PractitionerRole,
+//		// Organization from the store.
+//		log.info("Before enrich Bundle content:\n{}", fhirContext.newJsonParser().encodeResourceToString(bundle));
+//
+//		enrichBundleWithResources(bundle, thePatientId.getIdPart(), practitionerRoleId);
+//
+//		immEntries.get(0).setPatient(new Reference().setReference("urn:uuid:" + thePatientId.getIdPart()));
+//		Composition comp = bundle.getEntry().stream().filter(e -> e.getResource() instanceof Composition)
+//				.map(e -> (Composition) e.getResource()).findFirst().orElse(null);
+//
+//		if (comp != null) {
+//			comp.setSubject(new Reference().setReference("urn:uuid:" + thePatientId.getIdPart()));
+//			comp.setDate(new Date());
+//			comp.setAuthor(List.of(new Reference().setReference("urn:uuid:" + practitionerRoleId)));
 //		}
-//		return chVaccinationRecordDocument;
+//
+//		log.info("Built vaccination record Bundle with {} entries for ehrId={}", bundle.getEntry().size(), ehrId);
+//
+//		log.info("Bundle content:\n{}", fhirContext.newJsonParser().encodeResourceToString(bundle));
 
-		Bundle b = new Bundle();
-		b.setId(UUID.randomUUID().toString());
-		b.setType(Bundle.BundleType.DOCUMENT);
-		return b;
+		return chVaccinationRecordDocument;
+
+//		Bundle b = new Bundle();
+//		b.setId(UUID.randomUUID().toString());
+//		b.setType(Bundle.BundleType.DOCUMENT);
+//		return b;
 	}
 
 }

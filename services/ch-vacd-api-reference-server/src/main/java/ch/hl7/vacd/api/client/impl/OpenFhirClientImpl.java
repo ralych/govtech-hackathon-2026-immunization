@@ -1,8 +1,10 @@
-package ch.hl7.vacd.api.client;
+package ch.hl7.vacd.api.client.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ch.hl7.vacd.api.client.OpenFhirClient;
+import ch.hl7.vacd.api.openehr.ChVacdOpenEhrConstants;
 import ch.hl7.vacd.api.provider.BundleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +23,7 @@ import org.springframework.web.client.RestTemplate;
  * Handles FHIR → openEHR FLAT JSON conversion via POST /openfhir/toopenehr.
  */
 @Component
-public class OpenFhirClient {
+public class OpenFhirClientImpl implements OpenFhirClient {
 
 	private final RestTemplate restTemplate;
 	private final ObjectMapper objectMapper;
@@ -30,9 +32,9 @@ public class OpenFhirClient {
 
     private static final Logger log = LoggerFactory.getLogger(BundleProvider.class);
 
-	public OpenFhirClient(
+	public OpenFhirClientImpl(
 			@Value("${openfhir.url:http://openfhir:8083}") String baseUrl,
-			@Value("${openfhir.template-id:ch-vacd-immunization administration.v1-alpha}") String defaultTemplateId) {
+			@Value("${openfhir.template-id:"+ChVacdOpenEhrConstants.ADMIN_TEMPLATE+"}") String defaultTemplateId) {
 		this.restTemplate = new RestTemplate();
 		this.objectMapper = new ObjectMapper();
 		// Strip trailing /openfhir if present
@@ -47,6 +49,7 @@ public class OpenFhirClient {
 	 * @param templateId optional template ID override (uses default if null)
 	 * @return the FLAT JSON as a string (Jackson-parseable ObjectNode)
 	 */
+	@Override
 	public String toOpenEhr(String fhirJson, String templateId) {
 		String tid = (templateId != null) ? templateId : defaultTemplateId;
 		//String encodedTid = UriUtils.encode(tid, StandardCharsets.UTF_8);
@@ -80,6 +83,7 @@ public class OpenFhirClient {
 	/**
 	 * Convert a FHIR Bundle JSON to openEHR FLAT format using the default template ID.
 	 */
+	@Override
 	public String toOpenEhr(String fhirJson) {
 		return toOpenEhr(fhirJson, defaultTemplateId);
 	}
@@ -88,8 +92,9 @@ public class OpenFhirClient {
      * Converts a flattened openEHR JSON back to FHIR using openFHIR's /openfhir/tofhir endpoint.
      * @return the FHIR JSON as a string
      */
-    public String toFhir(String flatJson) {
-        return toFhir(flatJson, "ch-vacd-immunization administration.v1-alpha");
+    @Override
+	public String toFhir(String flatJson) {
+        return toFhir(flatJson, ChVacdOpenEhrConstants.ADMIN_TEMPLATE);
     }
 
     /**
@@ -98,7 +103,8 @@ public class OpenFhirClient {
      * @param templateId the template ID to use for the conversion
      * @return the FHIR JSON as a string
      */
-    public String toFhir(String json, String templateId) {
+    @Override
+	public String toFhir(String json, String templateId) {
         String url = baseUrl + "/openfhir/tofhir?templateId=" + templateId;
 
         log.info(url);
@@ -124,6 +130,7 @@ public class OpenFhirClient {
 	/**
 	 * Check openFHIR health endpoint.
 	 */
+	@Override
 	public boolean isHealthy() {
 		try {
 			ResponseEntity<String> response = restTemplate.getForEntity(baseUrl + "/health", String.class);
@@ -138,6 +145,7 @@ public class OpenFhirClient {
 	/**
 	 * List OPTs registered in openFHIR.
 	 */
+	@Override
 	public JsonNode listOpts() {
 		try {
 			ResponseEntity<String> response = restTemplate.getForEntity(baseUrl + "/opt", String.class);
@@ -150,6 +158,7 @@ public class OpenFhirClient {
 	/**
 	 * Upload an OPT XML to openFHIR.
 	 */
+	@Override
 	public String postOpt(String xml) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_XML);
@@ -162,6 +171,7 @@ public class OpenFhirClient {
 	/**
 	 * List FHIRconnect contexts registered in openFHIR.
 	 */
+	@Override
 	public JsonNode listContexts() {
 		try {
 			ResponseEntity<String> response = restTemplate.getForEntity(baseUrl + "/fc/context", String.class);
@@ -174,6 +184,7 @@ public class OpenFhirClient {
 	/**
 	 * Upload a FHIRconnect context YAML to openFHIR.
 	 */
+	@Override
 	public String postContextYaml(String yaml) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType("application/x-yaml"));
@@ -186,6 +197,7 @@ public class OpenFhirClient {
 	/**
 	 * List FHIRconnect models registered in openFHIR.
 	 */
+	@Override
 	public JsonNode listModels() {
 		try {
 			ResponseEntity<String> response = restTemplate.getForEntity(baseUrl + "/fc/model", String.class);
@@ -198,6 +210,7 @@ public class OpenFhirClient {
 	/**
 	 * Upload a FHIRconnect model YAML to openFHIR.
 	 */
+	@Override
 	public String postModelYaml(String yaml) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType("application/x-yaml"));
@@ -210,6 +223,7 @@ public class OpenFhirClient {
 	/**
 	 * Delete a FHIRconnect context by name.
 	 */
+	@Override
 	public boolean deleteContext(String name) {
 		try {
 			restTemplate.delete(baseUrl + "/fc/context/" + name);
@@ -222,6 +236,7 @@ public class OpenFhirClient {
 	/**
 	 * Delete a FHIRconnect model by name.
 	 */
+	@Override
 	public boolean deleteModel(String name) {
 		try {
 			restTemplate.delete(baseUrl + "/fc/model/" + name);

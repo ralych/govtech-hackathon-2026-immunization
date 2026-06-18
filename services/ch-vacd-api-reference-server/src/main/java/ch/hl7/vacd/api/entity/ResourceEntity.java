@@ -13,6 +13,7 @@ import org.hibernate.envers.Audited;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,9 +45,13 @@ public class ResourceEntity {
 	@Column(name = "json", columnDefinition = "TEXT")
 	private String json;
 
-	@OneToMany(cascade = CascadeType.ALL, mappedBy = "resourceEntity")
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "resourceEntity", fetch = FetchType.LAZY)
 	@OnDelete(action = OnDeleteAction.CASCADE)
-	private List<ResourceIdentifier> identifiers = new ArrayList<>();
+	private List<ResourceIdentifierEntity> identifiers = new ArrayList<>();
+
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "sourceEntity", fetch = FetchType.LAZY)
+	@OnDelete(action = OnDeleteAction.CASCADE)
+	private List<ResourceReferenceEntity> references = new ArrayList<>();
 
 	@UpdateTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
@@ -137,7 +142,7 @@ public class ResourceEntity {
 	 * 
 	 * @return the identifiers
 	 */
-	public List<ResourceIdentifier> getIdentifiers() {
+	public List<ResourceIdentifierEntity> getIdentifiers() {
 		if (identifiers == null) {
 			identifiers = new ArrayList<>();
 		}
@@ -149,14 +154,60 @@ public class ResourceEntity {
 	 * 
 	 * @param identifiers the identifiers
 	 */
-	public ResourceEntity setIdentifiers(List<ResourceIdentifier> identifiers) {
+	public ResourceEntity setIdentifiers(List<ResourceIdentifierEntity> identifiers) {
 		this.identifiers = identifiers;
 		return this;
 	}
 
-	public ResourceEntity addIdentifier(ResourceIdentifier identifier) {
+	public ResourceEntity addIdentifier(ResourceIdentifierEntity identifier) {
 		this.getIdentifiers().add(identifier);
 		return this;
 	}
 
+	/**
+	 * Method to get
+	 * 
+	 * @return the references
+	 */
+	public List<ResourceReferenceEntity> getReferences() {
+		if (references == null) {
+			references = new ArrayList<>();
+
+		}
+		return references;
+	}
+
+	/**
+	 * Method to set
+	 * 
+	 * @param references the references
+	 */
+	public ResourceEntity setReferences(List<ResourceReferenceEntity> references) {
+		this.references = references;
+		return this;
+	}
+
+	/**
+	 * Method to add a reference
+	 * 
+	 * @param reference the reference to add
+	 * @return the resource entity
+	 */
+	public ResourceEntity addReference(ResourceReferenceEntity reference) {
+		this.getReferences().add(reference);
+		return this;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("ResourceEntity [\n    id=").append(id).append("\n    resourceType=").append(resourceType)
+				.append("\n    resourceId=").append(resourceId).append("\n    version=").append(version)
+				.append("\n    identifiers=").append(identifiers)
+				.append("\n    references=").append(references).append("\n    lastUpdate=").append(lastUpdate)
+				.append("\n]");
+		return builder.toString();
+	}
+
+	
 }

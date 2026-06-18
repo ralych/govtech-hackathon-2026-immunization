@@ -14,8 +14,9 @@ import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ch.hl7.vacd.api.repo.ResourceRepository;
 import ch.hl7.vacd.api.business.PatientBusinessService;
-import ch.hl7.vacd.api.client.EhrbaseClient;
+import ch.hl7.vacd.api.client.impl.EhrbaseClientImpl;
 import ch.hl7.vacd.api.entity.ResourceEntity;
+import ch.hl7.vacd.api.exceptions.PatientNotFoundException;
 
 import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.instance.model.api.IBaseResource;
@@ -40,9 +41,9 @@ public class PatientProvider implements IResourceProvider {
 	
 	private final FhirContext fhirContext;
 //	private final ResourceRepository store;
-//	private final EhrbaseClient ehrbaseClient;
+//	private final EhrbaseClientImpl ehrbaseClient;
 
-	public PatientProvider(FhirContext fhirContext/*, ResourceRepository store, EhrbaseClient ehrbaseClient*/) {
+	public PatientProvider(FhirContext fhirContext/*, ResourceRepository store, EhrbaseClientImpl ehrbaseClient*/) {
 		this.fhirContext = fhirContext;
 //		this.store = store;
 //		this.ehrbaseClient = ehrbaseClient;
@@ -83,7 +84,7 @@ public class PatientProvider implements IResourceProvider {
 	}
 
 	@Operation(name = "export-document", idempotent = false)
-	public Bundle exportDocument(@IdParam IdType theId, @ResourceParam Parameters parameters) {
+	public Bundle exportDocument(@IdParam IdType theId, @ResourceParam Parameters parameters) throws PatientNotFoundException {
 		if ((parameters.getParameter("type") != null) && //
 				(parameters.getParameter("type").getValue() instanceof Coding) && //
 				("urn:oid:2.16.756.5.30.1.127.3.10.10".equals(//
