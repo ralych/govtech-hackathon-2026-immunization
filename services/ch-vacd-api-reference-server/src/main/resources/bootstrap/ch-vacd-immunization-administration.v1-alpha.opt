@@ -17,9 +17,9 @@
         <other_details id="original_namespace"></other_details>
         <other_details id="original_publisher"></other_details>
         <other_details id="custodian_namespace"></other_details>
-        <other_details id="sem_ver">0.9.0</other_details>
-        <other_details id="build_uid"></other_details>
-        <other_details id="MD5-CAM-1.0.1">7503535f71e97016e3a113b048142fd3</other_details>
+        <other_details id="sem_ver">0.10.0</other_details>
+        <other_details id="build_uid">de1f0fe1-7503-4f6b-ad3f-3f30a6986336</other_details>
+        <other_details id="MD5-CAM-1.0.1">24c380cc721aee06d014c8d83611d334</other_details>
         <other_details id="PARENT:MD5-CAM-1.0.1">3B0765A6B395C9D01595FDF2D440E6CB</other_details>
         <details>
             <language>
@@ -48,12 +48,12 @@ Not to be used to record persistent allergy, intolerance, contraindication, risk
         </details>
     </description>
     <uid>
-        <value>77fe9da1-11f2-4a58-bb89-b46fa4d28546</value>
+        <value>6a3990ff-a7c7-447d-b03b-85c46d8ec43b</value>
     </uid>
     <template_id>
-        <value>ch-vacd-immunization administration.v1-alpha</value>
+        <value>ch-vacd-immunization-administration.v1-alpha</value>
     </template_id>
-    <concept>ch-vacd-immunization administration.v1-alpha</concept>
+    <concept>ch-vacd-immunization-administration.v1-alpha</concept>
     <definition>
         <rm_type_name>COMPOSITION</rm_type_name>
         <occurrences>
@@ -3465,7 +3465,7 @@ https://tx.fhir.ch/r4/ValueSet/$expand?url=http://hl7.org/fhir/ValueSet/immuniza
             <value>openEHR-EHR-COMPOSITION.encounter.v1</value>
         </archetype_id>
         <template_id>
-            <value>ch-vacd-immunization administration.v1-alpha</value>
+            <value>ch-vacd-immunization-administration.v1-alpha</value>
         </template_id>
         <term_definitions code="at0000">
             <items id="text">CH VACD Immunization administration</items>
