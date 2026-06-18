@@ -81,10 +81,22 @@ mappings:
           with:
             fhir: "actor"
             openehr: "performer"
-        - name: "function"
+
+        - name: "functionHardcoding"
+          with:
+            fhir: "$fhirRoot"
+            openehr: "$openehrRoot"
+          manual:
+            - name: "functionManualEntry"
+              openehr:
+                - path: "|function"
+                  value: "performer"
+
+        - name: "functionRoleToFhir"
           with:
             fhir: "function"
             openehr: "function"
+          unidirectional: "openehr->fhir"
 
   - name: "vaccineCode"
     with:
@@ -105,6 +117,11 @@ mappings:
     with:
       fhir: "$resource.site"
       openehr: "$archetype/description[at0017]/items[at0140]/items[at0141]"
+
+  - name: "doseNumber"
+    with:
+      fhir: "$resource.protocolApplied.doseNumber"
+      openehr: "$archetype/description[at0017]/items[at0025]"
 
   - name: "comment"
     with:
@@ -146,9 +163,10 @@ mappings:
 
   - name: "immunizationManufacturer"
     with:
-#      // todo: display?
+      #      // todo: display?
       fhir: "$resource.manufacturer.as(Reference).display"
       openehr: "$archetype/description[at0017]/items[openEHR-EHR-CLUSTER.medication.v2]/items[at0151]"
+
 
   - name: "immunizationLotNumber"
     with:
@@ -190,10 +208,6 @@ mappings:
           with:
             fhir: "targetDisease"
             openehr: "items[at0003]"
-        - name: "doseNumber"
-          with:
-            fhir: "$resource.protocolApplied.doseNumber"
-            openehr: "$archetype/description[at0017]/items[at0025]"
 
   - name: "subpotentDose"
     with:

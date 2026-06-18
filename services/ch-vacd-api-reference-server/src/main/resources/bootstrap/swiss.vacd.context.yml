@@ -10,13 +10,13 @@ spec:
 context:
   profile:
     url: "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-document-immunization-administration"
-    version: "2.0.0"
+    version: "6.0.0"
     _bundleMetadata:
       type: "document"
-      profile: "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-document-vaccination-record"
+      profile: "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-document-immunization-administration"
       identifier_system: "urn:ietf:rfc:3986"
   template:
-    id: "ch-vacd-immunization administration.v1-alpha"
+    id: "ch-vacd-immunization-administration.v1-alpha"
   archetypes:
     - "COMPOSITION.encounter.v1"
     - "CLUSTER.medication.v2"
