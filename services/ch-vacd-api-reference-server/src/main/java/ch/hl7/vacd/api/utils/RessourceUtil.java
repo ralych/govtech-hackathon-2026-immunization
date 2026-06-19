@@ -19,6 +19,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CanonicalType;
 import org.hl7.fhir.r4.model.CodeableConcept;
@@ -26,6 +27,7 @@ import org.hl7.fhir.r4.model.Composition;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointUse;
 import org.hl7.fhir.r4.model.Device;
 import org.hl7.fhir.r4.model.Device.FHIRDeviceStatus;
+import org.hl7.fhir.r4.model.Immunization.ImmunizationProtocolAppliedComponent;
 import org.hl7.fhir.r4.model.Device.DeviceNameType;
 import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.HumanName;
@@ -39,14 +41,18 @@ import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
+import org.projecthusky.fhir.vacd.ch.common.enums.ChVacdDocumentType;
 import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunization;
+import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunizationAdministrationComposition;
 import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunizationAdministrationDocument;
 import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdVaccinationRecordDocument;
+import org.projecthusky.fhir.vacd.ch.common.service.ChVacdParser;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import ch.hl7.vacd.api.domain.Peeled;
 import ch.hl7.vacd.api.entity.ResourceEntity;
@@ -341,6 +347,88 @@ public class RessourceUtil {
 		device.addDeviceName().setName("Immunization Registry System").setType(DeviceNameType.MODELNAME);
 
 		return device;
+	}
+
+	public static ChVacdImmunizationAdministrationDocument createOpenFhirImmunizationAdministrationDocument(
+			Bundle bundle, FhirContext fhirContext) {
+		ChVacdParser parser = new ChVacdParser(fhirContext);
+		ChVacdImmunizationAdministrationDocument chvacdIn = parser
+				.parse(fhirContext.newJsonParser().encodeToString(bundle), ChVacdDocumentType.ADMIN);
+
+		ChVacdImmunizationAdministrationDocument chvacdToEHR = new ChVacdImmunizationAdministrationDocument();
+		chvacdToEHR.setId(bundle.getId());
+
+		ChVacdImmunizationAdministrationComposition compIn = chvacdIn.resolveComposition();
+		ChVacdImmunizationAdministrationComposition comEHR = chvacdToEHR.resolveComposition();
+		compIn.copyValues(comEHR);
+
+		// delete copied references to avoid duplicates
+		comEHR.resolveAdministrationSection().getEntry().clear();
+
+		String patientIdIn = RessourceUtil.removeUrn(compIn.getSubject().getResource().getIdElement().toString());
+		comEHR.setSubject(new Reference(compIn.getSubject().getResource().fhirType() + "/" + patientIdIn));
+
+		compIn.getAuthor().forEach(author -> {
+			String authorIdIn = RessourceUtil.removeUrn(author.getResource().getIdElement().toString());
+			comEHR.addAuthor(new Reference(author.getResource().fhirType() + "/" + authorIdIn));
+		});
+
+//		chvacdToEHR.addEntry().setResource(comEHR);
+
+		List<ChVacdImmunization> immEntriesIn = chvacdIn.getEntry().stream()
+				.filter(entry -> entry.getResource() instanceof ChVacdImmunization).map(entry -> {
+					ChVacdImmunization imm = (ChVacdImmunization) entry.getResource();
+					imm.setId(entry.getFullUrl());
+					return imm;
+				}).collect(Collectors.toList());
+
+		for (ChVacdImmunization immIn : immEntriesIn) {
+			String mmIndpattId = RessourceUtil.removeUrn(immIn.getPatient().getResource().getIdElement().getIdPart());
+			ChVacdImmunization immEHR = immIn.copy();
+//			ChVacdImmunization immEHR = chvacdToEHR.addImmunization();
+//			immIn.copyValues(immEHR);
+
+			// replace recorder resource by reference
+			String immInRec = RessourceUtil.removeUrn(immIn.getRecorder().getResource().getIdElement().getIdPart());
+			immEHR.setRecorder(new Reference(immIn.getRecorder().getResource().fhirType() + "/" + immInRec));
+
+			// replace patient resource by reference
+			immEHR.setPatient(new Reference(immIn.getPatient().getResource().fhirType() + "/" + mmIndpattId));
+
+			// replace performer reference
+			immEHR.getPerformer().clear();
+			String immInPerfId = RessourceUtil
+					.removeUrn(immIn.getPerformerFirstRep().getActor().getResource().getIdElement().getIdPart());
+			immEHR.addPerformer().setActor(new Reference(
+					immIn.getPerformerFirstRep().getActor().getResource().fhirType() + "/" + immInPerfId));
+
+			chvacdToEHR.addImmunization(immEHR);
+		}
+		return chvacdToEHR;
+	}
+
+	/**
+	 * Fixes the ImmunizationProtocolAppliedComponent of an Immunization resource by
+	 * consolidating multiple protocol applied entries into a single entry.
+	 *
+	 * @param imm The Immunization resource to be fixed.
+	 */
+	public static void fixProtocolApplied(Immunization imm) {
+		ImmunizationProtocolAppliedComponent protocol = new ImmunizationProtocolAppliedComponent();
+		imm.getProtocolApplied().forEach(pa -> {
+			if (pa.getSeries() != null) {
+				protocol.setSeries(pa.getSeries());
+			}
+			if (pa.getDoseNumber() != null) {
+				protocol.setDoseNumber(pa.getDoseNumber());
+			}
+			if (pa.getSeriesDoses() != null) {
+				protocol.setSeriesDoses(pa.getSeriesDoses());
+			}
+			pa.getTargetDisease().forEach(td -> protocol.addTargetDisease(td));
+
+		});
+		imm.setProtocolApplied(List.of(protocol));
 	}
 
 }

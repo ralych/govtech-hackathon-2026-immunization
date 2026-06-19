@@ -7,12 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.hl7.fhir.instance.model.api.IIdType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Immunization;
+import org.hl7.fhir.r4.model.Immunization.ImmunizationProtocolAppliedComponent;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.Reference;
@@ -199,16 +201,15 @@ public class ImmunizationBusinessServiceImpl extends AbstractBusinessService imp
 					.getIdValue();
 
 			String flatImmJson = ehrbaseClient.getCompositionFlat(RessourceUtil.removeUrn(ehrId), compositionuid);
-			log.info("Retrieved flat JSON for compositionUid={} ehrId={}: {}", compositionuid, ehrId, flatImmJson);
+			log.info("Retrieved flat JSON for compositionUid={} ehrId={}:\n{}", compositionuid, ehrId, flatImmJson);
 
 			List<ResourceReferenceEntity> references = entity.getReferences();
 			log.info("References for Immunization id={}: {}", id.getIdPart(), references);
 			Optional<ResourceReferenceEntity> patientReference = references.stream()
 					.filter(ref -> "Immunization.patient".equals(ref.getSourceField())).findFirst();
 
-//			FeederAuditEnricher.
-
 			String fhirString = openFhirClient.toFhir(flatImmJson);
+			log.info("toFhir:\n{}", fhirString);
 			Bundle fromEhr = fhirContext.newJsonParser().parseResource(Bundle.class, fhirString);
 
 			Optional<Immunization> immOpt = fromEhr.getEntry().stream()
@@ -224,6 +225,9 @@ public class ImmunizationBusinessServiceImpl extends AbstractBusinessService imp
 							patientReference.get().getTargetType() + "/" + patientReference.get().getTargetId()));
 				}
 
+				RessourceUtil.fixProtocolApplied(imm);
+
+				log.info("Immunization:\n{}", fhirContext.newJsonParser().encodeResourceToString(imm));
 				return imm;
 			} else {
 				throw new IllegalStateException(

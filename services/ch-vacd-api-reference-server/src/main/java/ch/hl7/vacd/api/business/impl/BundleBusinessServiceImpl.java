@@ -18,10 +18,12 @@ import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Immunization;
 import org.hl7.fhir.r4.model.Organization;
+import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Resource;
 import org.projecthusky.fhir.vacd.ch.common.enums.ChVacdDocumentType;
+import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunization;
 import org.projecthusky.fhir.vacd.ch.common.resource.r4.ChVacdImmunizationAdministrationDocument;
 import org.projecthusky.fhir.vacd.ch.common.service.ChVacdParser;
 import org.slf4j.Logger;
@@ -39,6 +41,7 @@ import ch.hl7.vacd.api.entity.ResourceReferenceEntity;
 import ch.hl7.vacd.api.exceptions.PatientNotFoundException;
 import ch.hl7.vacd.api.repo.ResourceRepository;
 import ch.hl7.vacd.api.utils.RessourceUtil;
+import jakarta.transaction.Transactional;
 
 /**
  * 	
@@ -56,18 +59,8 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 	}
 
 	@Override
+	@Transactional
 	public Bundle createBundle(Bundle bundle) throws PatientNotFoundException {
-
-		try {
-			ChVacdParser parser = new ChVacdParser(fhirContext);
-			ChVacdImmunizationAdministrationDocument ref = parser
-					.parse(fhirContext.newJsonParser().encodeToString(bundle), ChVacdDocumentType.ADMIN);
-
-			ref.getId();
-		} catch (Exception e) {
-			log.error("Failed to parse incoming Bundle as ChVacdImmunizationAdministrationDocument", e);
-		}
-
 		// Validate and extract bundle structure.
 		Peeled peeled = RessourceUtil.peel(bundle);
 
@@ -99,27 +92,6 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 		}
 		for (PractitionerRole practitionerRole : peeled.practitionerRoles) {
 			ResourceEntity praRoleEntry = createIfAbsent(practitionerRole, fullUrlMap);
-
-			try {
-				ResourceReferenceEntity refEntity1 = new ResourceReferenceEntity()//
-						.setTargetType("Practitioner")//
-						.setTargetId(practitionerRole.getPractitioner().getReferenceElement().getIdPart())//
-						.setSourceEntity(praRoleEntry)//
-						.setSourceField("PractitionerRole.practitioner");
-				praRoleEntry.addReference(refEntity1);
-
-				ResourceReferenceEntity refEntity2 = new ResourceReferenceEntity()//
-						.setTargetType("Organization")//
-						.setTargetId(practitionerRole.getOrganization().getReferenceElement().getIdPart())//
-						.setSourceEntity(praRoleEntry)//
-						.setSourceField("PractitionerRole.organization");
-				praRoleEntry.addReference(refEntity2);
-
-				store.save(praRoleEntry);
-			} catch (Exception e) {
-				log.error("Error saving Immunization resource to local store: {}", e.getMessage(), e);
-			}
-
 		}
 
 //		patientId = RessourceUtil.removeUrn(patientId);
@@ -143,14 +115,56 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 		List<String> compositionUids = new ArrayList<>();
 
 		log.info("FHIR server accepted Bundle, id={}", id);
-		Bundle retbundle = processImmunizationAdmnistration(bundle, fullUrlMap, compositionUids, peeled.immunizations,
-				ehrId, patientId);
+		Bundle bundleFromEhr = processImmunizationAdmnistration(bundle, fullUrlMap, compositionUids,
+				peeled.immunizations, ehrId, patientId);
 
 		log.info(
 				"Completed ingestion: bundleId={} patientId={} practitioners={} organizations={} immunizations={} compositions={}",
 				id, patientId, practitionerIds, organizationIds, peeled.immunizations.size(), compositionUids.size());
 
-		return bundle;
+		log.info("Processed bundle:\n{}",
+				fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundleFromEhr));
+
+		// create a new bundle to return, containing only the
+		// ImmunizationAdministrationDocument resources
+		ChVacdImmunizationAdministrationDocument bundleOut = RessourceUtil.createImmunizationAdministrationDocument();
+		Patient patientOut = peeled.patient.copy();
+		patientOut.setId(RessourceUtil.removeUrn(patientOut.getId()));
+		bundleOut.setPatient(patientOut);
+		patientOut.setIdElement(null);
+		bundleOut.setIdentifier(bundle.getIdentifier().copy());
+
+//		for (PractitionerRole practitionerRole : peeled.practitionerRoles) {
+//			PractitionerRole practitionerRoleOut = practitionerRole.copy();
+//			bundleOut.addEntry().setResource(practitionerRoleOut)
+//					.setFullUrl("urn:uuid:" + RessourceUtil.removeUrn(practitionerRoleOut.getId()));
+//		}
+//
+//		for (Practitioner practitioner : peeled.practitioners) {
+//			Practitioner practitionerOut = practitioner.copy();
+//
+//			bundleOut.addEntry().setResource(practitionerOut)
+//					.setFullUrl("urn:uuid:" + RessourceUtil.removeUrn(practitioner.getId()));
+//
+//		}
+//		for (Organization organization : peeled.organizations) {
+//			Organization organizationOut = organization.copy();
+//			bundleOut.addEntry().setResource(organizationOut)
+//					.setFullUrl("urn:uuid:" + RessourceUtil.removeUrn(organizationOut.getId()));
+//		}
+		List<Immunization> immEntries = bundleFromEhr.getEntry().stream()
+				.filter(e -> e.getResource() instanceof Immunization)
+				.map(e -> (Immunization) e.getResource()).collect(Collectors.toList());
+		for (Immunization immunization : immEntries) {
+			log.info("Immunization resource: id={}, status={}, vaccineCode={}", immunization.getId(),
+					immunization.getStatus(), immunization.getVaccineCode().getCodingFirstRep().getCode());
+
+			ChVacdImmunization immun = copyImmunization(immunization, patientOut, bundleOut);
+			bundleOut.addImmunization(immun);
+		}
+
+		log.info("Out bundle:\n{}", fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundleOut));
+		return bundleOut;
 
 	}
 
