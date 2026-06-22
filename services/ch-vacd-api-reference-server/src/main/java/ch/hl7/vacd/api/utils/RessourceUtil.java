@@ -389,8 +389,10 @@ public class RessourceUtil {
 //			immIn.copyValues(immEHR);
 
 			// replace recorder resource by reference
-			String immInRec = RessourceUtil.removeUrn(immIn.getRecorder().getResource().getIdElement().getIdPart());
-			immEHR.setRecorder(new Reference(immIn.getRecorder().getResource().fhirType() + "/" + immInRec));
+			if(immIn.getRecorder() != null && immIn.getRecorder().getResource() != null) {
+				String immInRec = RessourceUtil.removeUrn(immIn.getRecorder().getResource().getIdElement().getIdPart());
+				immEHR.setRecorder(new Reference(immIn.getRecorder().getResource().fhirType() + "/" + immInRec));
+			}
 
 			// replace patient resource by reference
 			immEHR.setPatient(new Reference(immIn.getPatient().getResource().fhirType() + "/" + mmIndpattId));

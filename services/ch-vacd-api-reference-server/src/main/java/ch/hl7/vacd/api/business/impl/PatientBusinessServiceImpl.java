@@ -150,7 +150,10 @@ public class PatientBusinessServiceImpl extends AbstractBusinessService implemen
 
 		String immJson = ehrbaseClient.getImmunizations(ehrId);
 		log.info("openEHR {}:\n{}", ehrId, immJson);
-
+		if (immJson == null || immJson.isEmpty()) {
+//			throw new PatientNotFoundException("No immunizations found for patientId: " + thePatientId.getIdPart());
+			return chVaccinationRecordDocument;
+		}
 		String fhirJson = openFhirClient.toFhir(immJson, ChVacdOpenEhrConstants.VACC_TEMPLATE);
 		log.info("Converted FHIR JSON:\n{}", fhirJson);
 		Bundle bundle = (Bundle) fhirContext.newJsonParser().parseResource(fhirJson);
@@ -171,7 +174,5 @@ public class PatientBusinessServiceImpl extends AbstractBusinessService implemen
 		return chVaccinationRecordDocument;
 
 	}
-
-	
 
 }

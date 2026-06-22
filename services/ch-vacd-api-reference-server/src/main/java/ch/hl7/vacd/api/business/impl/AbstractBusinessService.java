@@ -9,6 +9,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.Composition;
+import org.hl7.fhir.r4.model.DomainResource;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Immunization;
@@ -231,14 +232,32 @@ public class AbstractBusinessService {
 		log.info("Performer IDs for immunization {}: {}", immunization.getId(), perfomerIds);
 		ChVacdImmunization immun = new ChVacdImmunization();
 		immunization.copyValues(immun);
+		
 		for (String performerId : perfomerIds) {
 			if (performerId == null) {
 				continue;
 			}
 			IdType idType = new IdType(performerId);
-			PractitionerRole perfomer = getResourceEntry((idType.getResourceType()!=null)?idType.getResourceType(): "PractitionerRole", idType.getIdPart());
+			log.info("Performer reference for id:\n{}: {} {}",performerId,  idType.getResourceType(), idType.getIdPart());
+			
+			DomainResource perfomerDR = getResourceEntry(
+					(idType.getResourceType() != null) ? idType.getResourceType() : "PractitionerRole",
+					idType.getIdPart());
+			if (perfomerDR != null && perfomerDR instanceof Practitioner) {
+				Practitioner perfomer = (Practitioner) perfomerDR;
+//				Practitioner practitioner = getResourceEntry("Practitioner",
+//						RessourceUtil.removeUrn(perfomer.getIdPart()));
+				if (checkEntryAbsent(document, perfomer)) {
+					document.addEntry().setResource(perfomer).setFullUrl("urn:uuid:" + perfomer.getIdPart());
+					perfomer.setIdElement(null);
+				}
+				immun.addPerformer().setActor(new Reference(perfomer));
+				
+
+			}
 			// complete practitionerrole with reference to practitioner and organization
-			if (perfomer != null) {
+			else if (perfomerDR != null && perfomerDR instanceof PractitionerRole) {
+				PractitionerRole perfomer = (PractitionerRole) perfomerDR;
 				Practitioner practitioner = getResourceEntry("Practitioner",
 						RessourceUtil.removeUrn(perfomer.getPractitioner().getReferenceElement().getIdPart()));
 				if (checkEntryAbsent(document, practitioner)) {
@@ -259,7 +278,9 @@ public class AbstractBusinessService {
 					document.addEntry().setResource(perfomer).setFullUrl("urn:uuid:" + perfomer.getIdPart());
 					perfomer.setIdElement(null);
 				}
+				perfomer.setIdElement(null);
 				immun.addPerformer().setActor(new Reference(perfomer));
+				
 			}
 		}
 
@@ -271,10 +292,10 @@ public class AbstractBusinessService {
 		return immun;
 	}
 
-	private boolean checkEntryAbsent(ChVacdAbstractDocument document, Resource practitioner) {
+	private boolean checkEntryAbsent(ChVacdAbstractDocument document, Resource resource) {
 		return !document.getEntry().stream()//
-				.filter(e -> e.getResource().fhirType().equals(practitioner.fhirType())
-						&& e.getFullUrl().equals("urn:uuid:" + practitioner.getIdElement().getIdPart()))//
+				.filter(e -> e.getResource().fhirType().equals(resource.fhirType())
+						&& e.getFullUrl().equals("urn:uuid:" + resource.getIdElement().getIdPart()))//
 				.findFirst()//
 				.isPresent();
 	}

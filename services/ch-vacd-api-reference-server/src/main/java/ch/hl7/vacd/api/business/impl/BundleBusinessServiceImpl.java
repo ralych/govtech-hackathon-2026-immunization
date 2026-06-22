@@ -61,6 +61,8 @@ public class BundleBusinessServiceImpl extends AbstractBusinessService implement
 	@Override
 	@Transactional
 	public Bundle createBundle(Bundle bundle) throws PatientNotFoundException {
+		log.info("Creating Bundle:\n{}", fhirContext.newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle));
+		
 		// Validate and extract bundle structure.
 		Peeled peeled = RessourceUtil.peel(bundle);
 
