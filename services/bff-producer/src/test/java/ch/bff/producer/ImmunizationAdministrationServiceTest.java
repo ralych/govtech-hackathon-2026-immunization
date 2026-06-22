@@ -288,16 +288,17 @@ class ImmunizationAdministrationServiceTest {
         }
 
         @Override
-        public Bundle getVaccinationRecord(Parameters parameters) {
-            return null;
-        }
-
-        @Override
         public Bundle postImmunizationAdministrationBundle(Bundle bundle) {
             postedBundle = bundle;
             var response = new Bundle();
             response.setId("response-123");
             return response;
         }
+
+		@Override
+		public Bundle getVaccinationRecord(String id, Parameters parameters) {
+			// TODO Auto-generated method stub
+			return null;
+		}
     }
 }

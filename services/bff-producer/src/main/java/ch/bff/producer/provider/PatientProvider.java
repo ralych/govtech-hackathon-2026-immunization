@@ -30,7 +30,7 @@ public class PatientProvider {
         try {
             return patientReadService.getPatientList();
         } catch (Exception e) {
-            log.warn("FHIR server unavailable, falling back to sample patients: {}", e.getMessage());
+            log.warn("FHIR server unavailable, falling back to sample patients: {}", e.getMessage(), e);
             return getSamplePatients();
         }
     }

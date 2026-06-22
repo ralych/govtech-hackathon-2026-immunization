@@ -144,13 +144,14 @@ class VacctinationsReadServiceTest {
         }
 
         @Override
-        public Bundle getVaccinationRecord(Parameters parameters) {
-            return bundleToReturn;
-        }
-
-        @Override
         public Bundle postImmunizationAdministrationBundle(Bundle bundle) {
             return null;
         }
+
+		@Override
+		public Bundle getVaccinationRecord(String id, Parameters parameters) {
+			// TODO Auto-generated method stub
+			return null;
+		}
     }
 }

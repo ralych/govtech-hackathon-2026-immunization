@@ -56,7 +56,8 @@ public class ImmunizationAdministrationService {
         var patient = copyPatient(fhirPatient, patientUuid);
 
         // 2. Build FHIR resources
-        var immunization = buildImmunization(createDto, immunizationUuid, patientUuid, practitionerUuid);
+        var immunization = buildImmunization(createDto, immunizationUuid, patientUuid, practitionerRoleUuid);
+//        var immunization = buildImmunization(createDto, immunizationUuid, patientUuid, practitionerUuid);
         var practitioner = buildPractitioner(practitionerUuid);
         var organization = buildOrganization(organizationUuid);
         var practitionerRole = buildPractitionerRole(practitionerRoleUuid, practitionerUuid, organizationUuid);
@@ -97,7 +98,7 @@ public class ImmunizationAdministrationService {
     }
 
     private Immunization buildImmunization(ImmunizationCreateDto dto, UUID immunizationUuid,
-                                           UUID patientUuid, UUID practitionerUuid) {
+                                           UUID patientUuid, UUID practitionerRoleUuid) {
         var imm = new Immunization();
         imm.setId("urn:uuid:" + immunizationUuid);
         imm.setStatus(Immunization.ImmunizationStatus.COMPLETED);
@@ -133,7 +134,7 @@ public class ImmunizationAdministrationService {
         imm.getPatient().setReference("urn:uuid:" + patientUuid);
 
         var performer = imm.addPerformer();
-        performer.getActor().setReference("urn:uuid:" + practitionerUuid);
+        performer.getActor().setReference("urn:uuid:" + practitionerRoleUuid);
         performer.getActor().setDisplay("Dr. med. Sarah Müller");
 
         var pa = imm.addProtocolApplied();
