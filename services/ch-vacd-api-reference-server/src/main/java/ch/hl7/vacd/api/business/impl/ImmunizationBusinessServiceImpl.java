@@ -277,55 +277,67 @@ public class ImmunizationBusinessServiceImpl extends AbstractBusinessService imp
 	}
 
 	@Override
+	@Transactional
 	public List<Immunization> searchImmunizations(ReferenceParam patient) {
 		List<ResourceEntity> stored = store.findByResourceType("Immunization");
 		List<Immunization> out = new ArrayList<>();
 		for (ResourceEntity e : stored) {
-			var imm = ((Immunization) fhirContext.newJsonParser().parseResource(e.getJson()));
-			imm.setId(e.getResourceId());
-			if (patient == null) {
-				out.add(imm);
+
+			if (!e.getReferences().stream()
+					.filter(ref -> ("Immunization.patient".equals(ref.getSourceField())
+							&& "Patient".equals(ref.getTargetType()) && ref.getTargetId().equals(patient.getIdPart())))
+					.findFirst().isPresent()) {
 				continue;
 			}
-			if (imm.getPatient() == null || imm.getPatient().getReference() == null
-					|| !imm.getPatient().getReference().equals("urn:uuid:" + patient.getValue())) {
-				log.info("Skipping Immunization id={} due to patient reference mismatch: expected {}, actual {}",
-						imm.getId(), "urn:uuid:" + patient.getValue(),
-						imm.getPatient() != null ? imm.getPatient().getReference() : "null");
-				continue;
-			}
-
-			String patientRef = imm.getPatient().getReference().substring("urn:uuid:".length());
-			Patient p = store.findByResourceTypeAndResourceId("Patient", patientRef).stream().map(pe -> {
-				try {
-					return (Patient) fhirContext.newJsonParser().parseResource(pe.getJson());
-				} catch (Exception ex) {
-					log.error("Failed to parse Patient JSON for reference {}: {}", patientRef, ex.getMessage());
-					return null;
-				}
-			}).filter(parsed -> parsed != null).findFirst().orElse(null);
-
-			String practitionerRef = imm.getPerformer().isEmpty() ? null
-					: imm.getPerformer().get(0).getActor().getReference().substring("urn:uuid:".length());
-			Practitioner practitioner = store.findByResourceTypeAndResourceId("Practitioner", practitionerRef).stream()
-					.map(pe -> {
-						try {
-							return (Practitioner) fhirContext.newJsonParser().parseResource(pe.getJson());
-						} catch (Exception ex) {
-							log.error("Failed to parse Practitioner JSON for reference {}: {}", practitionerRef,
-									ex.getMessage());
-							return null;
-						}
-					}).filter(parsed -> parsed != null).findFirst().orElse(null);
-
-			log.info("Immunization id={} references patient with id={} and practitioner with id={}", imm.getId(),
-					patientRef, practitionerRef);
-			log.info("Patient resource: {}",
-					p != null ? fhirContext.newJsonParser().encodeResourceToString(p) : "null");
-			log.info("Practitioner resource: {}",
-					practitioner != null ? fhirContext.newJsonParser().encodeResourceToString(practitioner) : "null");
-
+			String immunizationId = e.getResourceId();
+			Immunization imm = readImmunization(new IdType("Immunization/" + immunizationId));
 			out.add(imm);
+			
+//			var imm = ((Immunization) fhirContext.newJsonParser().parseResource(e.getJson()));
+//			imm.setId(e.getResourceId());
+//			if (patient == null) {
+//				out.add(imm);
+//				continue;
+//			}
+//			if (imm.getPatient() == null || imm.getPatient().getReference() == null
+//					|| !imm.getPatient().getReference().equals("urn:uuid:" + patient.getValue())) {
+//				log.info("Skipping Immunization id={} due to patient reference mismatch: expected {}, actual {}",
+//						imm.getId(), "urn:uuid:" + patient.getValue(),
+//						imm.getPatient() != null ? imm.getPatient().getReference() : "null");
+//				continue;
+//			}
+//
+//			String patientRef = imm.getPatient().getReference().substring("urn:uuid:".length());
+//			Patient p = store.findByResourceTypeAndResourceId("Patient", patientRef).stream().map(pe -> {
+//				try {
+//					return (Patient) fhirContext.newJsonParser().parseResource(pe.getJson());
+//				} catch (Exception ex) {
+//					log.error("Failed to parse Patient JSON for reference {}: {}", patientRef, ex.getMessage());
+//					return null;
+//				}
+//			}).filter(parsed -> parsed != null).findFirst().orElse(null);
+//
+//			String practitionerRef = imm.getPerformer().isEmpty() ? null
+//					: imm.getPerformer().get(0).getActor().getReference().substring("urn:uuid:".length());
+//			Practitioner practitioner = store.findByResourceTypeAndResourceId("Practitioner", practitionerRef).stream()
+//					.map(pe -> {
+//						try {
+//							return (Practitioner) fhirContext.newJsonParser().parseResource(pe.getJson());
+//						} catch (Exception ex) {
+//							log.error("Failed to parse Practitioner JSON for reference {}: {}", practitionerRef,
+//									ex.getMessage());
+//							return null;
+//						}
+//					}).filter(parsed -> parsed != null).findFirst().orElse(null);
+//
+//			log.info("Immunization id={} references patient with id={} and practitioner with id={}", imm.getId(),
+//					patientRef, practitionerRef);
+//			log.info("Patient resource: {}",
+//					p != null ? fhirContext.newJsonParser().encodeResourceToString(p) : "null");
+//			log.info("Practitioner resource: {}",
+//					practitioner != null ? fhirContext.newJsonParser().encodeResourceToString(practitioner) : "null");
+//
+//			out.add(imm);
 		}
 		return out;
 	}
