@@ -8,7 +8,6 @@ import ca.uhn.fhir.rest.server.interceptor.LoggingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.RequestValidatingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseValidatingInterceptor;
 import ca.uhn.fhir.validation.ResultSeverityEnum;
-import ch.hl7.vacd.api.provider.VaccinationProvider;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import jakarta.servlet.Servlet;
 
@@ -83,9 +82,22 @@ public class FhirServletConfig {
 			server.setResourceProviders(filteredProviders);
 		}		
 		
-		LoggingInterceptor logInterceptor = new LoggingInterceptor();
-		logInterceptor.setLogger(loggger);
-		server.registerInterceptor(logInterceptor);
+//		LoggingInterceptor logInterceptor = new LoggingInterceptor();
+//		logInterceptor.setLogger(loggger);
+//		server.registerInterceptor(logInterceptor);
+		
+		ChVacdLoggingInterceptor loggingInterceptor = new ChVacdLoggingInterceptor(fhirContext);
+		loggingInterceptor.setLoggerName("fhir.log");
+//		loggingInterceptor.setMessageFormat(
+//				"Source[${remoteAddr}] Operation[${operationType} ${idOrResourceName}] Body[${requestBodyFhir}]");
+//		loggingInterceptor.setMessageFormat(
+//	            "Source[${remoteAddr}] Operation[${operationType} ${idOrResourceName}] UA[${requestHeader.user-agent}] Params[${requestParameters}]");
+		loggingInterceptor.setMessageFormat1(
+				"Source[${remoteAddr}] - Operation[${operationType} ${idOrResourceName}] - UA[${requestHeader.user-agent}] - Params[${requestParameters}]\nResource: ${requestBodyFhir}");
+		loggingInterceptor.setMessageFormat2(
+				"Source[${remoteAddr}] - Operation[${operationType} ${idOrResourceName}] - UA[${requestHeader.user-agent}] - Params[${requestParameters}]");
+		server.registerInterceptor(loggingInterceptor);
+		
 
 		RequestValidatingInterceptor reqValidatorInterceptor = new RequestValidatingInterceptor();
 		reqValidatorInterceptor.setFailOnSeverity(ResultSeverityEnum.ERROR);

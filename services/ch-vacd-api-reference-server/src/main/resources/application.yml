@@ -50,4 +50,4 @@ logging:
   level:
     root: INFO
     org.hibernate: WARN
-    ch.hl7.vacd.api.config.FhirServletConfig: DEBUG
+    fhir.log: DEBUG
