@@ -1,6 +1,7 @@
 server:
   port: 9111
   servlet.context-path: /ch-vacd-api-reference-server
+  forward-headers-strategy: framework
 
 spring:
   application.name: ch-vacd-API-reference-server
