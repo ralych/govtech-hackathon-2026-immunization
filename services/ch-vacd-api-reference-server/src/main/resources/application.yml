@@ -46,3 +46,9 @@ ehrbase:
 openfhir:
   url: ${MAPPER_URL:http://openfhir:8083}
   template-id: ${OPENFHIR_TEMPLATE_ID:ch-vacd-immunization-administration.v1-alpha}
+
+logging:
+  level:
+    root: INFO
+    org.hibernate: WARN
+    fhir.log: DEBUG
