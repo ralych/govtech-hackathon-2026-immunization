@@ -11,10 +11,8 @@ JWT_ALGO = "HS256"
 JWT_TTL = 3600
 
 USERS = {
-    "patient1": {"password": "pass123", "user_id": "00000000-0000-0000-0000-000000000001", "role": "patient"},
-    "patient2": {"password": "pass123", "user_id": "00000000-0000-0000-0000-000000000002", "role": "patient"},
-    "patient3": {"password": "pass123", "user_id": "00000000-0000-0000-0000-000000000003", "role": "patient"},
-    "patient4": {"password": "pass123", "user_id": "00000000-0000-0000-0000-000000000004", "role": "patient"},
+    "patient1": {"password": "pass123", "user_id": "f3e60681-b738-4aa1-8c5f-1bdbd73012e9", "role": "patient"},
+    "patient2": {"password": "pass123", "user_id": "87d36d4e-6d9e-4b9e-b34a-d3d0e80ffbd0", "role": "patient"},
     "doctor1": {"password": "pass123", "user_id": "10000000-0000-0000-0000-000000000001", "role": "doctor"},
 }
 

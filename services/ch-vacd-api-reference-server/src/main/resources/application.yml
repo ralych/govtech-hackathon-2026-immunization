@@ -1,6 +1,7 @@
 server:
   port: 9111
   servlet.context-path: /ch-vacd-api-reference-server
+  forward-headers-strategy: framework
 
 spring:
   application.name: ch-vacd-API-reference-server
@@ -44,10 +45,4 @@ ehrbase:
 # openFHIR mapping engine
 openfhir:
   url: ${MAPPER_URL:http://openfhir:8083}
-  template-id: ${OPENFHIR_TEMPLATE_ID:ch-vacd-immunization-administration.v1-alpha}
-
-logging:
-  level:
-    root: INFO
-    org.hibernate: WARN
-    fhir.log: DEBUG
+  template-id: ${OPENFHIR_TEMPLATE_ID:ch-vacd-immunization administration.v1-alpha}

@@ -143,7 +143,11 @@
     <form id="login-form" autocomplete="off">
       <div class="form-group">
         <label for="username">Benutzername</label>
-        <input type="text" id="username" placeholder="z. B. patient1" required autofocus />
+	<select id="username" required autofocus>
+		<option value="patient1">Muster Max</option>
+		<option value="patient2">Wegmueller Monika</option>
+		<option value="doctor1">Dr. med. Sarah Müller</option>
+	</select>
       </div>
       <div class="form-group">
         <label for="password">Passwort</label>
