@@ -4,6 +4,7 @@ import ch.bff.producer.client.FhirClient;
 import ch.bff.producer.mapstruct.VaccinationsMapper;
 import ch.bff.producer.provider.models.VaccinationDto;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Immunization;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Practitioner;
@@ -31,8 +32,9 @@ public class VacctinationsReadService {
 
     public List<VaccinationDto> getVaccinationList(String patientIamId) {
         var params = new Parameters();
-        params.addParameter().setName("patientId").setValue(new StringType(patientIamId));
-        var bundle = fhirClient.getVaccinationRecord(params);
+        // params.addParameter().setName("patientId").setValue(new StringType(patientIamId));
+        params.addParameter().setName("type").setValue(new Coding().setSystem("urn:oid:2.16.756.5.30.1.127.3.10.10").setCode("urn:che:epr:ch-vacd:vaccination-record:2022"));
+        var bundle = fhirClient.getVaccinationRecord(patientIamId, params);
 
         Map<String, Immunization> immunizationMap = new HashMap<>();
         for (var entry : bundle.getEntry()) {

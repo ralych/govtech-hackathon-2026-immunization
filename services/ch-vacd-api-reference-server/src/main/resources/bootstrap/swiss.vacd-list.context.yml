@@ -10,7 +10,7 @@ spec:
 context:
   profile:
     url: "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-document-vaccination-record"
-    version: "2.0.0"
+    version: "6.0.0"
     _bundleMetadata:
       type: "document"
       profile: "http://fhir.ch/ig/ch-vacd/StructureDefinition/ch-vacd-document-vaccination-record"

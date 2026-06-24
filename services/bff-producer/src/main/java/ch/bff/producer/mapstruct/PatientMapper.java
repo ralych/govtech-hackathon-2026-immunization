@@ -10,6 +10,7 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -53,6 +54,8 @@ public interface PatientMapper {
     @Named("extractAhv")
     default String extractAhv(List<Identifier> identifiers) {
         if (identifiers == null) return null;
+//        identifiers.forEach(i -> LoggerFactory.getLogger(getClass()).info("Identifier: system={}, value={}", i.getSystem(), i.getValue()));
+        
         return identifiers.stream()
                 .filter(id -> AHV_SYSTEM.equals(id.getSystem()))
                 .findFirst()

@@ -21,7 +21,7 @@ export function ImpfpassScreen() {
   };
 
   useEffect(() => {
-    let patientId = '0000000-0000-0000-0000-000000000001'; // Default Fallback
+    let patientId = '18c5b3b4-92d6-4481-8906-b7402e5ff685'; // Default Fallback
     try {
       const authStr = sessionStorage.getItem('auth');
       if (authStr) {

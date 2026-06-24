@@ -4,11 +4,10 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.support.DefaultProfileValidationSupport;
 import ca.uhn.fhir.context.support.IValidationSupport;
 import ca.uhn.fhir.rest.server.RestfulServer;
+import ca.uhn.fhir.rest.server.interceptor.LoggingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.RequestValidatingInterceptor;
 import ca.uhn.fhir.rest.server.interceptor.ResponseValidatingInterceptor;
 import ca.uhn.fhir.validation.ResultSeverityEnum;
-import ch.hl7.vacd.api.provider.VaccinationProvider;
-import ca.uhn.fhir.rest.openapi.OpenApiInterceptor;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import jakarta.servlet.Servlet;
 
@@ -67,8 +66,7 @@ public class FhirServletConfig {
 
 	@Bean
 	public ServletRegistrationBean<Servlet> fhirServlet(FhirContext fhirContext,
-			Collection<IResourceProvider> providers,
-			VaccinationProvider vaccinationProvider) {
+			Collection<IResourceProvider> providers) {
 		RestfulServer server = new RestfulServer(fhirContext);
 		// Register all discovered resource providers
 		if (resourceProviderClassNames.isEmpty()) {
@@ -82,10 +80,24 @@ public class FhirServletConfig {
 				}
 			});
 			server.setResourceProviders(filteredProviders);
-		}
-
-		// Register plain providers (non-IResourceProvider) for custom operations.
-		server.registerProviders(vaccinationProvider);
+		}		
+		
+//		LoggingInterceptor logInterceptor = new LoggingInterceptor();
+//		logInterceptor.setLogger(loggger);
+//		server.registerInterceptor(logInterceptor);
+		
+		ChVacdLoggingInterceptor loggingInterceptor = new ChVacdLoggingInterceptor(fhirContext);
+		loggingInterceptor.setLoggerName("fhir.log");
+//		loggingInterceptor.setMessageFormat(
+//				"Source[${remoteAddr}] Operation[${operationType} ${idOrResourceName}] Body[${requestBodyFhir}]");
+//		loggingInterceptor.setMessageFormat(
+//	            "Source[${remoteAddr}] Operation[${operationType} ${idOrResourceName}] UA[${requestHeader.user-agent}] Params[${requestParameters}]");
+		loggingInterceptor.setMessageFormat1(
+				"Source[${remoteAddr}] - Operation[${operationType} ${idOrResourceName}] - UA[${requestHeader.user-agent}] - Params[${requestParameters}]\nResource: ${requestBodyFhir}");
+		loggingInterceptor.setMessageFormat2(
+				"Source[${remoteAddr}] - Operation[${operationType} ${idOrResourceName}] - UA[${requestHeader.user-agent}] - Params[${requestParameters}]");
+		server.registerInterceptor(loggingInterceptor);
+		
 
 		RequestValidatingInterceptor reqValidatorInterceptor = new RequestValidatingInterceptor();
 		reqValidatorInterceptor.setFailOnSeverity(ResultSeverityEnum.ERROR);
@@ -94,13 +106,18 @@ public class FhirServletConfig {
 
 		ResponseValidatingInterceptor resValidatorInterceptor = new ResponseValidatingInterceptor();
 		resValidatorInterceptor.setFailOnSeverity(ResultSeverityEnum.ERROR);
-//		resValidatorInterceptor.setAddResponseHeaderOnSeverity(ResultSeverityEnum.WARNING);
+		resValidatorInterceptor.setAddResponseHeaderOnSeverity(ResultSeverityEnum.WARNING);
 		server.registerInterceptor(resValidatorInterceptor);
 
 		// Try to register the HAPI OpenAPI interceptor if present on the classpath
 		try {
-			OpenApiInterceptor openApiInterceptor = new OpenApiInterceptor();
-			server.registerInterceptor(openApiInterceptor);
+//			OpenApiInterceptor openApiInterceptor = new OpenApiInterceptor();
+//			server.registerInterceptor(openApiInterceptor);
+			ChVacdOpenApiInterceptor openApiInterCept = new ChVacdOpenApiInterceptor();
+			openApiInterCept.setUseResourcePages(true);
+			server.registerInterceptor(openApiInterCept);
+			
+			
 		} catch (Exception ignored) {
 			// ignore - openapi support is optional
 			System.out

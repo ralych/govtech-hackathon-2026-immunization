@@ -31,7 +31,7 @@ public class VaccinationProvider {
         try {
             return vacctinationsReadService.getVaccinationList(personId);
         } catch (Exception e) {
-            log.warn("FHIR unavailable, falling back to sample vaccinations: {}", e.getMessage());
+            log.warn("FHIR unavailable, falling back to sample vaccinations: {}", e.getMessage(), e);
             return getSampleVaccinations();
         }
     }
