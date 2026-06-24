@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Impfdossier CH — Anmelden</title>
+  <title>Impfdossier CH - Demo Showcase - Anmelden</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -17,7 +17,7 @@
       font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background: linear-gradient(135deg, #e8edf5 0%, #d5ddee 100%);
       min-height: 100vh;
-      display: flex;
+      display: grid;
       align-items: center;
       justify-content: center;
       padding: 1rem;
@@ -29,7 +29,7 @@
       box-shadow: 0 4px 24px rgba(0,0,0,.08);
       padding: 2.5rem 2rem;
       width: 100%;
-      max-width: 400px;
+      max-width: 500px;
     }
 
     .login-card h1 {
@@ -68,6 +68,17 @@
       transition: border-color .15s;
     }
 
+    .form-group select {
+      width: 100%;
+      padding: .625rem .75rem;
+      font-size: 1rem;
+      font-family: inherit;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      outline: none;
+      transition: border-color .15s;
+    }
+
     .form-group input:focus {
       border-color: #2563eb;
       box-shadow: 0 0 0 3px rgba(37,99,235,.15);
@@ -85,6 +96,26 @@
     }
 
     .error-msg.visible { display: block; }
+
+
+    .info-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 700px;
+      max-height: 300px;
+      text-align: center;
+    }
+
+    .org-logo {
+      height: 50px;
+    }
+
+    .org-p {
+      padding-bottom: 20px;
+    }
 
     button {
       width: 100%;
@@ -135,7 +166,7 @@
 </head>
 <body>
   <div class="login-card">
-    <h1>Impfdossier CH</h1>
+    <h1>Impfdossier CH - Demo Showcase</h1>
     <p class="subtitle">Bitte melden Sie sich an</p>
 
     <div id="error" class="error-msg" role="alert"></div>
@@ -159,8 +190,21 @@
     </form>
 
     <p class="hint">
-      Demo: <code>patient1</code> … <code>patient4</code> / <code>doctor1</code> · Passwort <code>pass123</code>
+    <!-- Demo: <code>patient1</code> … <code>patient4</code> / <code>doctor1</code> · Passwort <code>pass123</code> -->
     </p>
+
+  </div>
+
+  <div class="info-card">
+    <p class="org-p">
+    A Joint Project of
+    </p>
+    <p class="org-p">
+<a href="https://www.openehr.ch"><img class="org-logo" src="https://i0.wp.com/openehr.ch/wp-content/uploads/2023/07/Openehr_ch_klein.webp?w=1759&ssl=1"></a>
+</p>
+<p>
+<a href="https://www.hl7.ch"><img class="org-logo" src="https://www.hl7.ch/static/img/logo.png"></a>
+</p>
   </div>
 
   <script>
