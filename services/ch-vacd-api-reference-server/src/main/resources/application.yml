@@ -45,4 +45,4 @@ ehrbase:
 # openFHIR mapping engine
 openfhir:
   url: ${MAPPER_URL:http://openfhir:8083}
-  template-id: ${OPENFHIR_TEMPLATE_ID:ch-vacd-immunization administration.v1-alpha}
+  template-id: ${OPENFHIR_TEMPLATE_ID:ch-vacd-immunization-administration.v1-alpha}
