@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import time
 import jwt
 from flask import Flask, request, jsonify
@@ -9,12 +10,48 @@ app = Flask(__name__)
 JWT_SECRET = "iam-mock-secret"
 JWT_ALGO = "HS256"
 JWT_TTL = 3600
+USERS_FILE = os.environ.get(
+    "IAM_MOCK_USERS_FILE",
+    os.path.join("/app/data", "users.json"),
+)
 
-USERS = {
-    "patient1": {"password": "pass123", "user_id": "f3e60681-b738-4aa1-8c5f-1bdbd73012e9", "role": "patient"},
-    "patient2": {"password": "pass123", "user_id": "87d36d4e-6d9e-4b9e-b34a-d3d0e80ffbd0", "role": "patient"},
-    "doctor1": {"password": "pass123", "user_id": "10000000-0000-0000-0000-000000000001", "role": "doctor"},
-}
+def load_users(users_file):
+    with open(users_file, "r", encoding="utf-8") as f:
+        users = json.load(f)
+
+    if not isinstance(users, dict):
+        raise ValueError("Users file must contain a JSON object at the top level")
+
+    for username, user_data in users.items():
+        if not isinstance(user_data, dict):
+            raise ValueError(f"User '{username}' must be an object")
+
+        missing_fields = {"password", "user_id", "role"} - set(user_data.keys())
+        if missing_fields:
+            raise ValueError(
+                f"User '{username}' is missing required fields: {sorted(missing_fields)}"
+            )
+
+    return users
+
+
+USERS = load_users(USERS_FILE)
+
+
+@app.route("/users", methods=["GET"])
+def users():
+    safe_users = []
+    for username, user_data in USERS.items():
+        safe_users.append(
+            {
+                "username": username,
+                "name": user_data.get("name", username),
+                "role": user_data["role"],
+            }
+        )
+
+    safe_users.sort(key=lambda user: user["username"])
+    return jsonify({"users": safe_users})
 
 def parse_basic_auth(auth_header):
     if not auth_header or not auth_header.startswith("Basic "):

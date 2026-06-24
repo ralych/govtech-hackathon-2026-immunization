@@ -109,8 +109,11 @@
       text-align: center;
     }
 
-    .org-logo {
+    .org-logo-ehr {
       height: 50px;
+    }
+    .org-logo-hl7 {
+      height: 65px;
     }
 
     .org-p {
@@ -174,11 +177,9 @@
     <form id="login-form" autocomplete="off">
       <div class="form-group">
         <label for="username">Benutzername</label>
-	<select id="username" required autofocus>
-		<option value="patient1">Muster Max</option>
-		<option value="patient2">Wegmueller Monika</option>
-		<option value="doctor1">Dr. med. Sarah Müller</option>
-	</select>
+        <select id="username" required autofocus disabled>
+          <option value="">Lade Benutzer…</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="password">Passwort</label>
@@ -200,10 +201,10 @@
     A Joint Project of
     </p>
     <p class="org-p">
-<a href="https://www.openehr.ch"><img class="org-logo" src="https://i0.wp.com/openehr.ch/wp-content/uploads/2023/07/Openehr_ch_klein.webp?w=1759&ssl=1"></a>
+<a href="https://www.openehr.ch"><img class="org-logo-ehr" src="https://i0.wp.com/openehr.ch/wp-content/uploads/2023/07/Openehr_ch_klein.webp?w=1759&ssl=1"></a>
 </p>
 <p>
-<a href="https://www.hl7.ch"><img class="org-logo" src="https://www.hl7.ch/static/img/logo.png"></a>
+<a href="https://www.hl7.ch"><img class="org-logo-hl7" src="https://www.hl7.ch/static/img/logo.png"></a>
 </p>
   </div>
 
@@ -241,6 +242,51 @@
       function base64(str) {
         return btoa(unescape(encodeURIComponent(str)));
       }
+
+      async function loadUsers() {
+        const endpoints = ['/api/users', '/users'];
+        let payload = null;
+
+        for (const endpoint of endpoints) {
+          try {
+            const res = await fetch(endpoint);
+            if (!res.ok) {
+              continue;
+            }
+            payload = await res.json();
+            break;
+          } catch (err) {
+            // Try next endpoint.
+          }
+        }
+
+        const users = Array.isArray(payload?.users)
+          ? payload.users
+          : Array.isArray(payload)
+            ? payload
+            : [];
+
+        username.innerHTML = '';
+
+        if (!users.length) {
+          username.disabled = true;
+          btn.disabled = true;
+          showError('Keine Benutzer vom IAM-Service geladen.');
+          return;
+        }
+
+        for (const user of users) {
+          const option = document.createElement('option');
+          option.value = user.username;
+          option.textContent = user.name || user.username;
+          username.appendChild(option);
+        }
+
+        username.disabled = false;
+        btn.disabled = false;
+      }
+
+      loadUsers();
 
       form.addEventListener('submit', async function (e) {
         e.preventDefault();
