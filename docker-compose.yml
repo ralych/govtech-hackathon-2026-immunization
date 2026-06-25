@@ -278,6 +278,8 @@ services:
       context: ./services/iam-mock
     image: vacd/iam-mock:dev
     container_name: vacd-iam-mock
+    volumes:
+      - iam-mock-data:/app/data
     ports:
       - "9090:8080"
     healthcheck:
@@ -286,6 +288,7 @@ services:
       timeout: 5s
       start_period: 5s
       retries: 6
+    
 
   # Login Frontend
   login-frontend:
@@ -334,6 +337,7 @@ volumes:
   fhir-db-data:
   ehrbase-db-data:
   openfhir-mongo-data:
+  iam-mock-data:
 
 networks:
   default:
