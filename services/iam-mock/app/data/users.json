@@ -1,0 +1,32 @@
+{
+  "patient1": {
+    "password": "pass123",
+    "name": "patient1",
+    "user_id": "00000000-0000-0000-0000-000000000001",
+    "role": "patient"
+  },
+  "patient2": {
+    "password": "pass123",
+    "name": "patient2",
+    "user_id": "00000000-0000-0000-0000-000000000002",
+    "role": "patient"
+  },
+  "patient3": {
+    "password": "pass123",
+    "name": "patient3",
+    "user_id": "00000000-0000-0000-0000-000000000003",
+    "role": "patient"
+  },
+  "patient4": {
+    "password": "pass123",
+    "name": "patient4",
+    "user_id": "00000000-0000-0000-0000-000000000004",
+    "role": "patient"
+  },
+  "doctor1": {
+    "password": "pass123",
+    "name": "doctor1",
+    "user_id": "10000000-0000-0000-0000-000000000001",
+    "role": "doctor"
+  }
+}
